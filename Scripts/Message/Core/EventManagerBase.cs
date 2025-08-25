@@ -1,452 +1,488 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
+ï»¿//using System;
+//using System.Collections.Generic;
+//using System.Reflection;
+//using UnityEngine;
 
-/// <summary>
-/// ÊÂ¼ş×÷ÓÃÓòÃ¶¾Ù
-/// </summary>
-public enum EventScope
-{
-    Global,   // È«¾ÖÊÂ¼ş£¬ËùÓĞ¶ÔÏó¶¼ÄÜ¼àÌı
-    Instance  // ÊµÀıÊÂ¼ş£¬½öÌØ¶¨¶ÔÏóÊµÀıÏìÓ¦
-}
+///// <summary>
+///// äº‹ä»¶ä½œç”¨åŸŸæšä¸¾
+///// </summary>
+//public enum EventScope
+//{
+//    Global,   // å…¨å±€äº‹ä»¶ï¼Œæ‰€æœ‰å¯¹è±¡éƒ½èƒ½ç›‘å¬
+//    Instance  // å®ä¾‹äº‹ä»¶ï¼Œä»…ç‰¹å®šå¯¹è±¡å®ä¾‹å“åº”
+//}
 
-/// <summary>
-/// ÊÂ¼ş²ÎÊı»ùÀà
-/// </summary>
-public abstract class EventArgsBase { }
+///// <summary>
+///// äº‹ä»¶å®šä¹‰åŸºç±»ï¼ŒåŒ…å«äº‹ä»¶å…ƒä¿¡æ¯å’Œå‚æ•°æ•°æ®
+///// </summary>
+//public abstract class EventDefinition
+//{
+//    /// <summary>
+//    /// äº‹ä»¶åç§°ï¼ˆå­ç±»å¿…é¡»å®šä¹‰ï¼‰
+//    /// </summary>
+//    public abstract string EventName { get; }
 
-/// <summary>
-/// ±ê¼ÇÊÂ¼ş¶¨ÒåÀàµÄÌØĞÔ
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-public sealed class EventDefinitionAttribute : Attribute { }
+//    /// <summary>
+//    /// äº‹ä»¶ä½œç”¨åŸŸï¼ˆå­ç±»å¿…é¡»å®šä¹‰ï¼‰
+//    /// </summary>
+//    public abstract EventScope Scope { get; }
+//}
 
-/// <summary>
-/// ·ºĞÍÊÂ¼ş¶¨ÒåÀà£¬½«ÊÂ¼şĞÅÏ¢Óë²ÎÊıÀàĞÍ°ó¶¨
-/// </summary>
-/// <typeparam name="T">ÊÂ¼ş²ÎÊıÀàĞÍ£¬±ØĞëÊÇEventArgsBaseµÄ×ÓÀà</typeparam>
-public class EventInfo<T> where T : EventArgsBase
-{
-    public string Name { get; }
-    public EventScope Scope { get; }
-    public Type ArgsType { get; }
+///// <summary>
+///// äº‹ä»¶ç®¡ç†å™¨ï¼ˆå•ä¾‹ï¼‰ï¼Œè´Ÿè´£äº‹ä»¶çš„è®¢é˜…ã€å¹¿æ’­å’Œç®¡ç†
+///// </summary>
+//public class EventManager
+//{
+//    // å•ä¾‹å®ä¾‹
+//    private static EventManager _instance;
+//    private static readonly object _lock = new object();
 
-    public EventInfo(string name, EventScope scope)
-    {
-        Name = name;
-        Scope = scope;
-        ArgsType = typeof(T);
-    }
-}
+//    // å…¨å±€äº‹ä»¶å­—å…¸ï¼šäº‹ä»¶åç§° -> å¤„ç†æ–¹æ³•åˆ—è¡¨
+//    private readonly Dictionary<string, List<Action<EventDefinition>>> _globalEvents =
+//        new Dictionary<string, List<Action<EventDefinition>>>();
 
-/// <summary>
-/// ÊÂ¼ş¹ÜÀíÆ÷£¬²»ÒÀÀµMonoBehaviourµÄµ¥ÀıÊµÏÖ
-/// </summary>
-public class EventManager
-{
-    // µ¥ÀıÊµÀı
-    private static EventManager _instance;
+//    // å®ä¾‹äº‹ä»¶å­—å…¸ï¼šå¯¹è±¡å®ä¾‹ -> (äº‹ä»¶åç§° -> å¤„ç†æ–¹æ³•åˆ—è¡¨)
+//    private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> _instanceEvents =
+//        new Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>>();
 
-    // Ïß³Ì°²È«µÄµ¥ÀıËø
-    private static readonly object _lock = new object();
+//    // äº‹ä»¶å®šä¹‰ç¼“å­˜ï¼šäº‹ä»¶åç§° -> äº‹ä»¶ç±»å‹
+//    private readonly Dictionary<string, Type> _allEventTypes =
+//        new Dictionary<string, Type>();
 
-    // È«¾ÖÊÂ¼ş×Öµä£ºÊÂ¼şÃû³Æ -> ÊÂ¼ş´¦Àí·½·¨ÁĞ±í
-    private readonly Dictionary<string, List<Action<EventArgsBase>>> _globalEvents =
-        new Dictionary<string, List<Action<EventArgsBase>>>();
+//    public static EventManager Instance
+//    {
+//        get
+//        {
+//            if (_instance == null)
+//            {
+//                lock (_lock)
+//                {
+//                    if (_instance == null)
+//                    {
+//                        _instance = new EventManager();
+//                        _instance.Initialize();
+//                    }
+//                }
+//            }
+//            return _instance;
+//        }
+//    }
 
-    // ÊµÀıÊÂ¼ş×Öµä£º¶ÔÏóÊµÀı -> (ÊÂ¼şÃû³Æ -> ÊÂ¼ş´¦Àí·½·¨ÁĞ±í)
-    private readonly Dictionary<object, Dictionary<string, List<Action<EventArgsBase>>>> _instanceEvents =
-        new Dictionary<object, Dictionary<string, List<Action<EventArgsBase>>>>();
+//    private EventManager() { }
 
-    // ËùÓĞÊÂ¼ş¶¨ÒåµÄ»º´æ
-    private readonly Dictionary<string, EventInfo<EventArgsBase>> _allEvents =
-        new Dictionary<string, EventInfo<EventArgsBase>>();
+//    private void Initialize()
+//    {
+//        DiscoverEventDefinitions();
+//        Debug.Log($"äº‹ä»¶ç®¡ç†å™¨åˆå§‹åŒ–å®Œæˆï¼Œå…±å‘ç° {_allEventTypes.Count} ä¸ªäº‹ä»¶å®šä¹‰");
+//    }
 
-    /// <summary>
-    /// µ¥ÀıÊµÀı·ÃÎÊÆ÷
-    /// </summary>
-    public static EventManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                lock (_lock)
-                {
-                    if (_instance == null)
-                    {
-                        _instance = new EventManager();
-                        _instance.Initialize();
-                    }
-                }
-            }
-            return _instance;
-        }
-    }
+//    /// <summary>
+//    /// è‡ªåŠ¨å‘ç°æ‰€æœ‰ç»§æ‰¿è‡ªEventDefinitionçš„äº‹ä»¶å®šä¹‰ç±»
+//    /// </summary>
+//    private void DiscoverEventDefinitions()
+//    {
+//        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+//        {
+//            try
+//            {
+//                foreach (var type in assembly.GetTypes())
+//                {
+//                    if (type.IsSubclassOf(typeof(EventDefinition)) && !type.IsAbstract)
+//                    {
+//                        var instance = Activator.CreateInstance(type) as EventDefinition;
+//                        if (instance != null && !_allEventTypes.ContainsKey(instance.EventName))
+//                        {
+//                            _allEventTypes.Add(instance.EventName, type);
+//                        }
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                Debug.LogWarning($"åå°„è·å–äº‹ä»¶å®šä¹‰æ—¶å‡ºé”™: {ex.Message}");
+//            }
+//        }
+//    }
 
-    /// <summary>
-    /// Ë½ÓĞ¹¹Ôìº¯Êı£¬·ÀÖ¹Íâ²¿ÊµÀı»¯
-    /// </summary>
-    private EventManager() { }
+//    /// <summary>
+//    /// æ·»åŠ å…¨å±€äº‹ä»¶ç›‘å¬
+//    /// </summary>
+//    public void AddGlobalDelegate<TEvt>(Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        var eventInstance = new TEvt();
+//        var eventName = eventInstance.EventName;
 
-    /// <summary>
-    /// ³õÊ¼»¯ÊÂ¼ş¹ÜÀíÆ÷£¬×Ô¶¯·¢ÏÖËùÓĞÊÂ¼ş¶¨Òå
-    /// </summary>
-    private void Initialize()
-    {
-        DiscoverEventDefinitions();
-        Debug.Log($"ÊÂ¼ş¹ÜÀíÆ÷³õÊ¼»¯Íê³É£¬¹²·¢ÏÖ {_allEvents.Count} ¸öÊÂ¼ş¶¨Òå");
-    }
+//        if (!_allEventTypes.TryGetValue(eventName, out var eventType) || eventType != typeof(TEvt))
+//        {
+//            Debug.LogError($"æ·»åŠ å…¨å±€äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' æœªå®šä¹‰æˆ–ç±»å‹ä¸åŒ¹é…");
+//            return;
+//        }
 
-    /// <summary>
-    /// ×Ô¶¯·¢ÏÖ²¢×¢²áËùÓĞ±ê¼ÇÁËEventDefinitionAttributeµÄÊÂ¼ş¶¨ÒåÀà
-    /// </summary>
-    private void DiscoverEventDefinitions()
-    {
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            try
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    // ¼ì²éÀàÊÇ·ñ±ê¼ÇÁËÊÂ¼ş¶¨ÒåÌØĞÔ
-                    if (Attribute.IsDefined(type, typeof(EventDefinitionAttribute)))
-                    {
-                        // ·´Éä»ñÈ¡ËùÓĞ¾²Ì¬×Ö¶Î£¨ÊÂ¼ş¶¨Òå£©
-                        var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
-                        foreach (var field in fields)
-                        {
-                            // ¼ì²é×Ö¶ÎÀàĞÍÊÇ·ñÎª·ºĞÍEventInfo<>
-                            if (field.FieldType.IsGenericType &&
-                                field.FieldType.GetGenericTypeDefinition() == typeof(EventInfo<>))
-                            {
-                                var eventInfo = field.GetValue(null) as EventInfo<EventArgsBase>;
-                                if (eventInfo != null && !_allEvents.ContainsKey(eventInfo.Name))
-                                {
-                                    _allEvents.Add(eventInfo.Name, eventInfo);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"·´Éä»ñÈ¡ÊÂ¼ş¶¨ÒåÊ±³ö´í: {ex.Message}");
-            }
-        }
-    }
+//        if (eventInstance.Scope != EventScope.Global)
+//        {
+//            Debug.LogError($"æ·»åŠ å…¨å±€äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' ä¸æ˜¯å…¨å±€äº‹ä»¶");
+//            return;
+//        }
 
-    /// <summary>
-    /// Ìí¼ÓÈ«¾ÖÊÂ¼ş¼àÌı£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void AddGlobalListener<T>(EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        if (eventInfo == null)
-        {
-            Debug.LogError("Ìí¼ÓÈ«¾ÖÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼şĞÅÏ¢²»ÄÜÎªnull");
-            return;
-        }
+//        Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-        if (!_allEvents.ContainsKey(eventInfo.Name))
-        {
-            Debug.LogError($"Ìí¼ÓÈ«¾ÖÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' Î´¶¨Òå");
-            return;
-        }
+//        if (!_globalEvents.ContainsKey(eventName))
+//        {
+//            _globalEvents[eventName] = new List<Action<EventDefinition>>();
+//        }
 
-        if (_allEvents[eventInfo.Name].Scope != EventScope.Global)
-        {
-            Debug.LogError($"Ìí¼ÓÈ«¾ÖÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' ²»ÊÇÈ«¾ÖÊÂ¼ş");
-            return;
-        }
+//        if (!_globalEvents[eventName].Contains(baseListener))
+//        {
+//            _globalEvents[eventName].Add(baseListener);
+//        }
+//    }
 
-        // ½«·ºĞÍ¼àÌıÆ÷×ª»»Îª»ùÀà¼àÌıÆ÷
-        Action<EventArgsBase> baseListener = args => listener((T)args);
+//    /// <summary>
+//    /// ç§»é™¤å…¨å±€äº‹ä»¶ç›‘å¬
+//    /// </summary>
+//    public void RemoveGlobalDelegate<TEvt>(Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        var eventInstance = new TEvt();
+//        var eventName = eventInstance.EventName;
 
-        if (!_globalEvents.ContainsKey(eventInfo.Name))
-        {
-            _globalEvents[eventInfo.Name] = new List<Action<EventArgsBase>>();
-        }
+//        Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-        if (!_globalEvents[eventInfo.Name].Contains(baseListener))
-        {
-            _globalEvents[eventInfo.Name].Add(baseListener);
-        }
-    }
+//        if (_globalEvents.ContainsKey(eventName) && _globalEvents[eventName].Contains(baseListener))
+//        {
+//            _globalEvents[eventName].Remove(baseListener);
 
-    /// <summary>
-    /// ÒÆ³ıÈ«¾ÖÊÂ¼ş¼àÌı£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void RemoveGlobalListener<T>(EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        if (eventInfo == null) return;
+//            if (_globalEvents[eventName].Count == 0)
+//            {
+//                _globalEvents.Remove(eventName);
+//            }
+//        }
+//    }
 
-        // ´´½¨¶ÔÓ¦µÄ»ùÀà¼àÌıÆ÷
-        Action<EventArgsBase> baseListener = args => listener((T)args);
+//    /// <summary>
+//    /// å¹¿æ’­å…¨å±€äº‹ä»¶
+//    /// </summary>
+//    public void BroadcastGlobalEvent<TEvt>(TEvt eventData) where TEvt : EventDefinition
+//    {
+//        if (eventData == null)
+//        {
+//            Debug.LogError("å¹¿æ’­å…¨å±€äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶æ•°æ®ä¸èƒ½ä¸ºnull");
+//            return;
+//        }
 
-        if (_globalEvents.ContainsKey(eventInfo.Name) && _globalEvents[eventInfo.Name].Contains(baseListener))
-        {
-            _globalEvents[eventInfo.Name].Remove(baseListener);
+//        var eventName = eventData.EventName;
 
-            if (_globalEvents[eventInfo.Name].Count == 0)
-            {
-                _globalEvents.Remove(eventInfo.Name);
-            }
-        }
-    }
+//        if (!_allEventTypes.TryGetValue(eventName, out var eventType) || eventType != typeof(TEvt))
+//        {
+//            Debug.LogError($"å¹¿æ’­å…¨å±€äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' æœªå®šä¹‰æˆ–ç±»å‹ä¸åŒ¹é…");
+//            return;
+//        }
 
-    /// <summary>
-    /// ´¥·¢È«¾ÖÊÂ¼ş£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void TriggerGlobalEvent<T>(EventInfo<T> eventInfo, T args) where T : EventArgsBase
-    {
-        if (eventInfo == null)
-        {
-            Debug.LogError("´¥·¢È«¾ÖÊÂ¼şÊ§°Ü£ºÊÂ¼şĞÅÏ¢²»ÄÜÎªnull");
-            return;
-        }
+//        if (eventData.Scope != EventScope.Global)
+//        {
+//            Debug.LogError($"å¹¿æ’­å…¨å±€äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' ä¸æ˜¯å…¨å±€äº‹ä»¶");
+//            return;
+//        }
 
-        if (!_allEvents.ContainsKey(eventInfo.Name))
-        {
-            Debug.LogError($"´¥·¢È«¾ÖÊÂ¼şÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' Î´¶¨Òå");
-            return;
-        }
+//        if (_globalEvents.TryGetValue(eventName, out var listeners))
+//        {
+//            var listenersCopy = new List<Action<EventDefinition>>(listeners);
+//            foreach (var listener in listenersCopy)
+//            {
+//                try
+//                {
+//                    listener?.Invoke(eventData);
+//                }
+//                catch (Exception ex)
+//                {
+//                    Debug.LogError($"å¤„ç†äº‹ä»¶ '{eventName}' æ—¶å‡ºé”™: {ex.Message}\n{ex.StackTrace}");
+//                }
+//            }
+//        }
+//    }
 
-        var storedEventInfo = _allEvents[eventInfo.Name];
+//    /// <summary>
+//    /// æ·»åŠ å®ä¾‹äº‹ä»¶ç›‘å¬ï¼ˆéœ€æŒ‡å®šå…³è”å®ä¾‹ï¼‰
+//    /// </summary>
+//    public void AddInstanceDelegate<TEvt>(object instance, Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        if (instance == null)
+//        {
+//            Debug.LogError("æ·»åŠ å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šå®ä¾‹ä¸èƒ½ä¸ºnull");
+//            return;
+//        }
 
-        if (storedEventInfo.Scope != EventScope.Global)
-        {
-            Debug.LogError($"´¥·¢È«¾ÖÊÂ¼şÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' ²»ÊÇÈ«¾ÖÊÂ¼ş");
-            return;
-        }
+//        var eventInstance = new TEvt();
+//        var eventName = eventInstance.EventName;
 
-        if (args != null && args.GetType() != storedEventInfo.ArgsType)
-        {
-            Debug.LogError($"´¥·¢ÊÂ¼ş '{eventInfo.Name}' Ê§°Ü£º²ÎÊıÀàĞÍ²»Æ¥Åä£¬Ô¤ÆÚ {storedEventInfo.ArgsType.Name}£¬Êµ¼Ê {args.GetType().Name}");
-            return;
-        }
+//        if (!_allEventTypes.TryGetValue(eventName, out var eventType) || eventType != typeof(TEvt))
+//        {
+//            Debug.LogError($"æ·»åŠ å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' æœªå®šä¹‰æˆ–ç±»å‹ä¸åŒ¹é…");
+//            return;
+//        }
 
-        if (_globalEvents.TryGetValue(eventInfo.Name, out var listeners))
-        {
-            var listenersCopy = new List<Action<EventArgsBase>>(listeners);
-            foreach (var listener in listenersCopy)
-            {
-                try
-                {
-                    listener?.Invoke(args);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"´¦ÀíÊÂ¼ş '{eventInfo.Name}' Ê±³ö´í: {ex.Message}\n{ex.StackTrace}");
-                }
-            }
-        }
-    }
+//        if (eventInstance.Scope != EventScope.Instance)
+//        {
+//            Debug.LogError($"æ·»åŠ å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' ä¸æ˜¯å®ä¾‹äº‹ä»¶");
+//            return;
+//        }
 
-    /// <summary>
-    /// Ìí¼ÓÊµÀıÊÂ¼ş¼àÌı£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void AddInstanceListener<T>(object instance, EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        if (instance == null)
-        {
-            Debug.LogError("Ìí¼ÓÊµÀıÊÂ¼ş¼àÌıÊ§°Ü£ºÊµÀı²»ÄÜÎªnull");
-            return;
-        }
+//        Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-        if (eventInfo == null)
-        {
-            Debug.LogError("Ìí¼ÓÊµÀıÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼şĞÅÏ¢²»ÄÜÎªnull");
-            return;
-        }
+//        if (!_instanceEvents.ContainsKey(instance))
+//        {
+//            _instanceEvents[instance] = new Dictionary<string, List<Action<EventDefinition>>>();
+//        }
 
-        if (!_allEvents.ContainsKey(eventInfo.Name))
-        {
-            Debug.LogError($"Ìí¼ÓÊµÀıÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' Î´¶¨Òå");
-            return;
-        }
+//        var instanceEventDict = _instanceEvents[instance];
+//        if (!instanceEventDict.ContainsKey(eventName))
+//        {
+//            instanceEventDict[eventName] = new List<Action<EventDefinition>>();
+//        }
 
-        if (_allEvents[eventInfo.Name].Scope != EventScope.Instance)
-        {
-            Debug.LogError($"Ìí¼ÓÊµÀıÊÂ¼ş¼àÌıÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' ²»ÊÇÊµÀıÊÂ¼ş");
-            return;
-        }
+//        if (!instanceEventDict[eventName].Contains(baseListener))
+//        {
+//            instanceEventDict[eventName].Add(baseListener);
+//        }
+//    }
 
-        // ½«·ºĞÍ¼àÌıÆ÷×ª»»Îª»ùÀà¼àÌıÆ÷
-        Action<EventArgsBase> baseListener = args => listener((T)args);
+//    /// <summary>
+//    /// ç§»é™¤å®ä¾‹äº‹ä»¶ç›‘å¬ï¼ˆéœ€æŒ‡å®šå…³è”å®ä¾‹ï¼‰
+//    /// </summary>
+//    public void RemoveInstanceDelegate<TEvt>(object instance, Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        if (instance == null) return;
 
-        // È·±£ÊµÀıÔÚ×ÖµäÖĞ´æÔÚ
-        if (!_instanceEvents.ContainsKey(instance))
-        {
-            _instanceEvents[instance] = new Dictionary<string, List<Action<EventArgsBase>>>();
-        }
+//        var eventInstance = new TEvt();
+//        var eventName = eventInstance.EventName;
 
-        var instanceEventDict = _instanceEvents[instance];
+//        Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-        // È·±£ÊÂ¼şÃû³ÆÔÚÊµÀıµÄÊÂ¼ş×ÖµäÖĞ´æÔÚ
-        if (!instanceEventDict.ContainsKey(eventInfo.Name))
-        {
-            instanceEventDict[eventInfo.Name] = new List<Action<EventArgsBase>>();
-        }
+//        if (_instanceEvents.TryGetValue(instance, out var instanceEventDict) &&
+//            instanceEventDict.TryGetValue(eventName, out var listeners))
+//        {
+//            listeners.Remove(baseListener);
 
-        // ±ÜÃâÌí¼ÓÖØ¸´µÄ¼àÌıÆ÷
-        if (!instanceEventDict[eventInfo.Name].Contains(baseListener))
-        {
-            instanceEventDict[eventInfo.Name].Add(baseListener);
-        }
-    }
+//            if (listeners.Count == 0)
+//            {
+//                instanceEventDict.Remove(eventName);
+//                if (instanceEventDict.Count == 0)
+//                {
+//                    _instanceEvents.Remove(instance);
+//                }
+//            }
+//        }
+//    }
 
-    /// <summary>
-    /// ÒÆ³ıÊµÀıÊÂ¼ş¼àÌı£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void RemoveInstanceListener<T>(object instance, EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        if (instance == null || eventInfo == null) return;
+//    /// <summary>
+//    /// ç§»é™¤å®ä¾‹çš„æ‰€æœ‰äº‹ä»¶ç›‘å¬
+//    /// </summary>
+//    public void RemoveAllInstanceDelegates(object instance)
+//    {
+//        if (instance != null && _instanceEvents.ContainsKey(instance))
+//        {
+//            _instanceEvents.Remove(instance);
+//        }
+//    }
 
-        // ´´½¨¶ÔÓ¦µÄ»ùÀà¼àÌıÆ÷
-        Action<EventArgsBase> baseListener = args => listener((T)args);
+//    /// <summary>
+//    /// å¹¿æ’­å®ä¾‹äº‹ä»¶ï¼ˆéœ€æŒ‡å®šç›®æ ‡å®ä¾‹ï¼‰
+//    /// </summary>
+//    public void BroadcastInstanceEvent<TEvt>(object instance, TEvt eventData) where TEvt : EventDefinition
+//    {
+//        if (instance == null)
+//        {
+//            Debug.LogError("å¹¿æ’­å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šå®ä¾‹ä¸èƒ½ä¸ºnull");
+//            return;
+//        }
 
-        if (_instanceEvents.TryGetValue(instance, out var instanceEventDict))
-        {
-            if (instanceEventDict.TryGetValue(eventInfo.Name, out var listeners))
-            {
-                listeners.Remove(baseListener);
+//        if (eventData == null)
+//        {
+//            Debug.LogError("å¹¿æ’­å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶æ•°æ®ä¸èƒ½ä¸ºnull");
+//            return;
+//        }
 
-                // ÇåÀí¿ÕÁĞ±í
-                if (listeners.Count == 0)
-                {
-                    instanceEventDict.Remove(eventInfo.Name);
+//        var eventName = eventData.EventName;
 
-                    // Èç¹ûÊµÀıÃ»ÓĞÈÎºÎÊÂ¼ş¼àÌıÁË£¬´Ó×ÖµäÖĞÒÆ³ı¸ÃÊµÀı
-                    if (instanceEventDict.Count == 0)
-                    {
-                        _instanceEvents.Remove(instance);
-                    }
-                }
-            }
-        }
-    }
+//        if (!_allEventTypes.TryGetValue(eventName, out var eventType) || eventType != typeof(TEvt))
+//        {
+//            Debug.LogError($"å¹¿æ’­å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' æœªå®šä¹‰æˆ–ç±»å‹ä¸åŒ¹é…");
+//            return;
+//        }
 
-    /// <summary>
-    /// ÒÆ³ıÊµÀıµÄËùÓĞÊÂ¼ş¼àÌı
-    /// </summary>
-    public void RemoveAllInstanceListeners(object instance)
-    {
-        if (instance != null && _instanceEvents.ContainsKey(instance))
-        {
-            _instanceEvents.Remove(instance);
-        }
-    }
+//        if (eventData.Scope != EventScope.Instance)
+//        {
+//            Debug.LogError($"å¹¿æ’­å®ä¾‹äº‹ä»¶å¤±è´¥ï¼šäº‹ä»¶ '{eventName}' ä¸æ˜¯å®ä¾‹äº‹ä»¶");
+//            return;
+//        }
 
-    /// <summary>
-    /// ´¥·¢ÊµÀıÊÂ¼ş£¨·ºĞÍ°æ±¾£©
-    /// </summary>
-    public void TriggerInstanceEvent<T>(object instance, EventInfo<T> eventInfo, T args) where T : EventArgsBase
-    {
-        if (instance == null)
-        {
-            Debug.LogError("´¥·¢ÊµÀıÊÂ¼şÊ§°Ü£ºÊµÀı²»ÄÜÎªnull");
-            return;
-        }
+//        if (_instanceEvents.TryGetValue(instance, out var instanceEventDict) &&
+//            instanceEventDict.TryGetValue(eventName, out var listeners))
+//        {
+//            var listenersCopy = new List<Action<EventDefinition>>(listeners);
+//            foreach (var listener in listenersCopy)
+//            {
+//                try
+//                {
+//                    listener?.Invoke(eventData);
+//                }
+//                catch (Exception ex)
+//                {
+//                    Debug.LogError($"å¤„ç†å®ä¾‹äº‹ä»¶ '{eventName}' æ—¶å‡ºé”™: {ex.Message}\n{ex.StackTrace}");
+//                }
+//            }
+//        }
+//    }
 
-        if (eventInfo == null)
-        {
-            Debug.LogError("´¥·¢ÊµÀıÊÂ¼şÊ§°Ü£ºÊÂ¼şĞÅÏ¢²»ÄÜÎªnull");
-            return;
-        }
+//    /// <summary>
+//    /// æ£€æŸ¥äº‹ä»¶æ˜¯å¦å·²å®šä¹‰
+//    /// </summary>
+//    public bool IsEventDefined(string eventName)
+//    {
+//        return _allEventTypes.ContainsKey(eventName);
+//    }
 
-        if (!_allEvents.ContainsKey(eventInfo.Name))
-        {
-            Debug.LogError($"´¥·¢ÊµÀıÊÂ¼şÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' Î´¶¨Òå");
-            return;
-        }
+//    /// <summary>
+//    /// è·å–æ‰€æœ‰å·²æ³¨å†Œçš„äº‹ä»¶åç§°
+//    /// </summary>
+//    public IEnumerable<string> GetAllEventNames()
+//    {
+//        return _allEventTypes.Keys;
+//    }
+//}
 
-        var storedEventInfo = _allEvents[eventInfo.Name];
+///// <summary>
+///// äº‹ä»¶ç®¡ç†å™¨æ‰©å±•æ–¹æ³•ï¼ˆç®€åŒ–äº‹ä»¶è°ƒç”¨ï¼‰
+///// </summary>
+//public static class EventManagerExtensions
+//{
+//    // å®ä¾‹äº‹ä»¶æ‰©å±•æ–¹æ³•
+//    /// <summary>
+//    /// ä¸ºå½“å‰å®ä¾‹æ·»åŠ äº‹ä»¶ç›‘å¬ï¼ˆè‡ªåŠ¨å°†å½“å‰å¯¹è±¡ä½œä¸ºinstanceï¼‰
+//    /// </summary>
+//    public static void AddInstanceDelegate<TEvt>(this object instance, Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        EventManager.Instance.AddInstanceDelegate(instance, listener);
+//    }
 
-        if (storedEventInfo.Scope != EventScope.Instance)
-        {
-            Debug.LogError($"´¥·¢ÊµÀıÊÂ¼şÊ§°Ü£ºÊÂ¼ş '{eventInfo.Name}' ²»ÊÇÊµÀıÊÂ¼ş");
-            return;
-        }
+//    /// <summary>
+//    /// ä¸ºå½“å‰å®ä¾‹ç§»é™¤äº‹ä»¶ç›‘å¬ï¼ˆè‡ªåŠ¨å°†å½“å‰å¯¹è±¡ä½œä¸ºinstanceï¼‰
+//    /// </summary>
+//    public static void RemoveInstanceDelegate<TEvt>(this object instance, Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        EventManager.Instance.RemoveInstanceDelegate(instance, listener);
+//    }
 
-        if (args != null && args.GetType() != storedEventInfo.ArgsType)
-        {
-            Debug.LogError($"´¥·¢ÊÂ¼ş '{eventInfo.Name}' Ê§°Ü£º²ÎÊıÀàĞÍ²»Æ¥Åä£¬Ô¤ÆÚ {storedEventInfo.ArgsType.Name}£¬Êµ¼Ê {args.GetType().Name}");
-            return;
-        }
+//    /// <summary>
+//    /// ç§»é™¤å½“å‰å®ä¾‹çš„æ‰€æœ‰äº‹ä»¶ç›‘å¬
+//    /// </summary>
+//    public static void RemoveAllInstanceDelegates(this object instance)
+//    {
+//        EventManager.Instance.RemoveAllInstanceDelegates(instance);
+//    }
 
-        if (_instanceEvents.TryGetValue(instance, out var instanceEventDict) &&
-            instanceEventDict.TryGetValue(eventInfo.Name, out var listeners))
-        {
-            var listenersCopy = new List<Action<EventArgsBase>>(listeners);
-            foreach (var listener in listenersCopy)
-            {
-                try
-                {
-                    listener?.Invoke(args);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"´¦ÀíÊµÀıÊÂ¼ş '{eventInfo.Name}' Ê±³ö´í: {ex.Message}\n{ex.StackTrace}");
-                }
-            }
-        }
-    }
+//    /// <summary>
+//    /// å‘å½“å‰å®ä¾‹å¹¿æ’­äº‹ä»¶ï¼ˆè‡ªåŠ¨å°†å½“å‰å¯¹è±¡ä½œä¸ºinstanceï¼‰
+//    /// </summary>
+//    public static void BroadcastInstanceEvent<TEvt>(this object instance, TEvt eventData) where TEvt : EventDefinition
+//    {
+//        EventManager.Instance.BroadcastInstanceEvent(instance, eventData);
+//    }
 
-    /// <summary>
-    /// »ñÈ¡ÊÂ¼şĞÅÏ¢
-    /// </summary>
-    public EventInfo<EventArgsBase> GetEventInfo(string eventName)
-    {
-        _allEvents.TryGetValue(eventName, out var eventInfo);
-        return eventInfo;
-    }
+//    // å…¨å±€äº‹ä»¶æ‰©å±•æ–¹æ³•
+//    /// <summary>
+//    /// æ·»åŠ å…¨å±€äº‹ä»¶ç›‘å¬ï¼ˆç®€åŒ–è°ƒç”¨ï¼‰
+//    /// </summary>
+//    public static void AddGlobalDelegate<TEvt>(this Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        EventManager.Instance.AddGlobalDelegate(listener);
+//    }
 
-    /// <summary>
-    /// ¼ì²éÊÂ¼şÊÇ·ñÒÑ¶¨Òå
-    /// </summary>
-    public bool IsEventDefined(string eventName)
-    {
-        return _allEvents.ContainsKey(eventName);
-    }
+//    /// <summary>
+//    /// ç§»é™¤å…¨å±€äº‹ä»¶ç›‘å¬ï¼ˆç®€åŒ–è°ƒç”¨ï¼‰
+//    /// </summary>
+//    public static void RemoveGlobalDelegate<TEvt>(this Action<TEvt> listener) where TEvt : EventDefinition, new()
+//    {
+//        EventManager.Instance.RemoveGlobalDelegate(listener);
+//    }
 
-    /// <summary>
-    /// »ñÈ¡ËùÓĞÒÑ×¢²áµÄÊÂ¼şÃû³Æ
-    /// </summary>
-    public IEnumerable<string> GetAllEventNames()
-    {
-        return _allEvents.Keys;
-    }
-}
+//    /// <summary>
+//    /// å¹¿æ’­å…¨å±€äº‹ä»¶ï¼ˆç®€åŒ–è°ƒç”¨ï¼‰
+//    /// </summary>
+//    public static void BroadcastGlobalEvent<TEvt>(this TEvt eventData) where TEvt : EventDefinition
+//    {
+//        EventManager.Instance.BroadcastGlobalEvent(eventData);
+//    }
+//}
 
-/// <summary>
-/// ÊÂ¼ş¹ÜÀíÆ÷µÄÀ©Õ¹·½·¨£¬¼ò»¯ÊµÀıÊÂ¼şµÄÊ¹ÓÃ
-/// </summary>
-public static class EventManagerExtensions
-{
-    /// <summary>
-    /// Îª¶ÔÏóÊµÀıÌí¼ÓÊÂ¼ş¼àÌı£¨À©Õ¹·½·¨£¬·ºĞÍ°æ±¾£©
-    /// </summary>
-    public static void AddInstanceListener<T>(this object instance, EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        EventManager.Instance.AddInstanceListener(instance, eventInfo, listener);
-    }
 
-    /// <summary>
-    /// ÒÆ³ı¶ÔÏóÊµÀıµÄÊÂ¼ş¼àÌı£¨À©Õ¹·½·¨£¬·ºĞÍ°æ±¾£©
-    /// </summary>
-    public static void RemoveInstanceListener<T>(this object instance, EventInfo<T> eventInfo, Action<T> listener) where T : EventArgsBase
-    {
-        EventManager.Instance.RemoveInstanceListener(instance, eventInfo, listener);
-    }
+///*
+// * // å…¨å±€äº‹ä»¶ç¤ºä¾‹
+//public class PlayerLevelUpEvent : EventDefinition
+//{
+//    public int NewLevel { get; set; } // äº‹ä»¶å‚æ•°
+//    public override string EventName => "PlayerLevelUp";
+//    public override EventScope Scope => EventScope.Global;
+//}
 
-    /// <summary>
-    /// ´¥·¢¶ÔÏóÊµÀıµÄÊÂ¼ş£¨À©Õ¹·½·¨£¬·ºĞÍ°æ±¾£©
-    /// </summary>
-    public static void TriggerInstanceEvent<T>(this object instance, EventInfo<T> eventInfo, T args) where T : EventArgsBase
-    {
-        EventManager.Instance.TriggerInstanceEvent(instance, eventInfo, args);
-    }
-}
+//// å®ä¾‹äº‹ä»¶ç¤ºä¾‹ï¼ˆä»…ç‰¹å®šå®ä¾‹å“åº”ï¼‰
+//public class HealthChangedEvent : EventDefinition
+//{
+//    public int Delta { get; set; } // äº‹ä»¶å‚æ•°ï¼ˆå˜åŒ–é‡ï¼‰
+//    public override string EventName => "HealthChanged";
+//    public override EventScope Scope => EventScope.Instance;
+//}
+
+
+
+
+//public class Player : MonoBehaviour
+//{
+//    private int _health;
+
+//    private void OnEnable()
+//    {
+//        // è®¢é˜…å…¨å±€äº‹ä»¶ï¼ˆé€šè¿‡æ‰©å±•æ–¹æ³•ç®€åŒ–ï¼Œæ— éœ€æ˜¾å¼è°ƒç”¨Instanceï¼‰
+//        OnPlayerLevelUp.AddGlobalDelegate<PlayerLevelUpEvent>();
+
+//        // è®¢é˜…å®ä¾‹äº‹ä»¶ï¼ˆé€šè¿‡æ‰©å±•æ–¹æ³•ï¼Œè‡ªåŠ¨å°†thisä½œä¸ºinstanceï¼‰
+//        this.AddInstanceDelegate<HealthChangedEvent>(OnHealthChanged);
+//    }
+
+//    private void OnDisable()
+//    {
+//        // ç§»é™¤å…¨å±€äº‹ä»¶ç›‘å¬ï¼ˆé€šè¿‡æ‰©å±•æ–¹æ³•ç®€åŒ–ï¼‰
+//        OnPlayerLevelUp.RemoveGlobalDelegate<PlayerLevelUpEvent>();
+
+//        // ç§»é™¤å®ä¾‹äº‹ä»¶ç›‘å¬ï¼ˆè‡ªåŠ¨å…³è”thisï¼‰
+//        this.RemoveInstanceDelegate<HealthChangedEvent>(OnHealthChanged);
+//    }
+
+//    // å…¨å±€äº‹ä»¶å¤„ç†æ–¹æ³•
+//    private void OnPlayerLevelUp(PlayerLevelUpEvent evt)
+//    {
+//        Debug.Log($"ç©å®¶å‡çº§åˆ° {evt.NewLevel} çº§ï¼");
+//    }
+
+//    // å®ä¾‹äº‹ä»¶å¤„ç†æ–¹æ³•ï¼ˆä»…å½“å‰Playerå®ä¾‹å“åº”ï¼‰
+//    private void OnHealthChanged(HealthChangedEvent evt)
+//    {
+//        _health += evt.Delta;
+//        Debug.Log($"å½“å‰å®ä¾‹ç”Ÿå‘½å€¼å˜åŒ–ï¼š{evt.Delta}ï¼Œæ–°å€¼ï¼š{_health}");
+//    }
+
+//    // å¹¿æ’­å®ä¾‹äº‹ä»¶ï¼ˆé€šè¿‡æ‰©å±•æ–¹æ³•ï¼Œè‡ªåŠ¨å°†thisä½œä¸ºç›®æ ‡å®ä¾‹ï¼‰
+//    public void TakeDamage(int damage)
+//    {
+//        this.BroadcastInstanceEvent(new HealthChangedEvent { Delta = -damage });
+//    }
+//}
+
+//public class GameManager : MonoBehaviour
+//{
+//    // å¹¿æ’­å…¨å±€äº‹ä»¶ï¼ˆé€šè¿‡æ‰©å±•æ–¹æ³•ç®€åŒ–ï¼‰
+//    public void LevelUpPlayer(int newLevel)
+//    {
+//        new PlayerLevelUpEvent { NewLevel = newLevel }.BroadcastGlobalEvent();
+//    }
+//}
+// */
