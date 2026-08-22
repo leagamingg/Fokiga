@@ -1,6 +1,6 @@
 {
   "name": "Fokiga.GameplayTags",
-  "rootNamespace": "Fokiga.GameplayTags",
+  "rootNamespace": "Fokiga.Runtime.Gameplay",
   "references": [],
   "includePlatforms": [],
   "excludePlatforms": [],

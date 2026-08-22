@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     [DisallowMultipleComponent]
-    [AddComponentMenu("Fokiga/Gameplay Tags/Gameplay Tag Component")]
+    [AddComponentMenu("Fokiga/GameplayTag/GameplayTag 组件")]
     public sealed class GameplayTagComponent : MonoBehaviour
     {
         [SerializeField] private List<string> _tagGuids = new List<string>();
@@ -32,15 +32,6 @@ namespace Fokiga.GameplayTags
         private void OnEnable()
         {
             EnsureContainer();
-        }
-
-        private void OnValidate()
-        {
-            if (!Application.isPlaying)
-            {
-                NormalizeSerializedTags();
-                ValidateSerializedTags();
-            }
         }
 
         public bool AddTag(GameplayTag tag)
@@ -122,7 +113,7 @@ namespace Fokiga.GameplayTags
                 }
                 else if (!string.IsNullOrEmpty(guid) && _reportedInvalidGuids.Add(guid))
                 {
-                    Debug.LogError($"GameplayTagComponent on '{name}' references unknown tag GUID '{guid}'.", this);
+                    Debug.LogError($"GameplayTagComponent“{name}”引用了未知标签 GUID“{guid}”。", this);
                 }
             }
         }
@@ -135,35 +126,5 @@ namespace Fokiga.GameplayTags
             }
         }
 
-        private void NormalizeSerializedTags()
-        {
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            _tagGuids.RemoveAll(guid => string.IsNullOrEmpty(guid) || !seen.Add(guid));
-        }
-
-        private void ValidateSerializedTags()
-        {
-            if (!GameplayTagRegistry.IsInitialized)
-            {
-                var database = Resources.Load<GameplayTagDatabase>("GameplayTags");
-                if (database != null)
-                {
-                    GameplayTagRegistry.Initialize(database);
-                }
-            }
-
-            if (!GameplayTagRegistry.IsInitialized)
-            {
-                return;
-            }
-
-            foreach (var guid in _tagGuids)
-            {
-                if (!string.IsNullOrEmpty(guid) && !GameplayTagRegistry.TryGetTagByGuid(guid, out _))
-                {
-                    Debug.LogError($"GameplayTagComponent on '{name}' contains unknown tag GUID '{guid}'.", this);
-                }
-            }
-        }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     [Serializable]
     public sealed class GameplayTagNodeData
@@ -144,27 +144,35 @@ namespace Fokiga.GameplayTags
             {
                 if (node == null)
                 {
-                    report.Add("Database contains a null node.");
+                    report.Add("数据库包含空标签节点。");
                     continue;
                 }
 
                 if (string.IsNullOrEmpty(node.Guid))
                 {
-                    report.Add("A tag node has an empty GUID.");
+                    report.Add("标签节点存在空 GUID。");
                 }
-                else if (!byGuid.TryAdd(node.Guid, node))
+                else
                 {
-                    report.Add($"Duplicate tag GUID: {node.Guid}");
+                    if (!Guid.TryParseExact(node.Guid, "N", out _))
+                    {
+                        report.Add($"标签 GUID“{node.Guid}”不是有效的 32 位十六进制 GUID。");
+                    }
+
+                    if (!byGuid.TryAdd(node.Guid, node))
+                    {
+                        report.Add($"重复的标签 GUID：{node.Guid}");
+                    }
                 }
 
                 if (!IsValidSegmentName(node.Name))
                 {
-                    report.Add($"Invalid tag node name: '{node.Name}'.");
+                    report.Add($"标签节点名称无效：“{node.Name}”。");
                 }
 
                 if (node.Guid == node.ParentGuid && !string.IsNullOrEmpty(node.Guid))
                 {
-                    report.Add($"Tag '{node.Guid}' cannot be its own parent.");
+                    report.Add($"标签“{node.Guid}”不能将自身作为父节点。");
                 }
             }
 
@@ -178,14 +186,14 @@ namespace Fokiga.GameplayTags
 
                 if (!string.IsNullOrEmpty(node.ParentGuid) && !byGuid.ContainsKey(node.ParentGuid))
                 {
-                    report.Add($"Tag '{node.Guid}' references missing parent '{node.ParentGuid}'.");
+                    report.Add($"标签“{node.Guid}”引用了不存在的父节点“{node.ParentGuid}”。");
                 }
 
                 if (TryBuildPath(node, byGuid, out var path, out var error))
                 {
                     if (!paths.Add(path))
                     {
-                        report.Add($"Duplicate tag path: {path}");
+                        report.Add($"重复的标签路径：{path}");
                     }
                 }
                 else
@@ -206,9 +214,9 @@ namespace Fokiga.GameplayTags
             }
 
             var byGuid = _nodes
-                .Where(item => item != null && !string.IsNullOrEmpty(item.Guid))
-                .GroupBy(item => item.Guid, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+            .Where(item => item != null && !string.IsNullOrEmpty(item.Guid))
+            .GroupBy(item => item.Guid, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
 
             return TryBuildPath(node, byGuid, out path, out _);
         }
@@ -239,10 +247,10 @@ namespace Fokiga.GameplayTags
         }
 
         private static bool TryBuildPath(
-            GameplayTagNodeData start,
-            IReadOnlyDictionary<string, GameplayTagNodeData> byGuid,
-            out string path,
-            out string error)
+        GameplayTagNodeData start,
+        IReadOnlyDictionary<string, GameplayTagNodeData> byGuid,
+        out string path,
+        out string error)
         {
             var names = new List<string>();
             var visited = new HashSet<string>(StringComparer.Ordinal);
@@ -253,7 +261,7 @@ namespace Fokiga.GameplayTags
                 if (!visited.Add(current.Guid))
                 {
                     path = string.Empty;
-                    error = $"Cycle detected while resolving tag '{start.Guid}'.";
+                    error = $"解析标签“{start.Guid}”时发现循环关系。";
                     return false;
                 }
 
@@ -270,13 +278,13 @@ namespace Fokiga.GameplayTags
                 if (!byGuid.TryGetValue(parentGuid, out current))
                 {
                     path = string.Empty;
-                    error = $"Tag '{start.Guid}' has missing parent '{parentGuid}'.";
+                    error = $"标签“{start.Guid}”缺少父节点“{parentGuid}”。";
                     return false;
                 }
             }
 
             path = string.Empty;
-            error = $"Unable to resolve tag '{start.Guid}'.";
+            error = $"无法解析标签“{start.Guid}”。";
             return false;
         }
     }

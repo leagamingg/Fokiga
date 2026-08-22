@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Event;
+using Fokiga.Runtime.Core;
 
-namespace Base
+namespace Fokiga.Runtime.Core
 {
     /// <summary>
     /// 组件接口，定义组件的核心行为和生命周期
@@ -64,7 +64,7 @@ namespace Base
 }
 
 
-namespace Base
+namespace Fokiga.Runtime.Core
 {
     /// <summary>
     /// 组件基类，实现IComponent接口，模拟Unity的MonoBehaviour或UE的ActorComponent
@@ -284,12 +284,12 @@ namespace Base
         public Guid AddUpdate(Action<float> updateFunction, int priority = 0, bool isOneShot = false)
         {
             return AddCallback(
-                updateFunction,
-                priority,
-                isOneShot,
-                _persistentUpdates,
-                _oneShotUpdates,
-                ref _needsSortingUpdates
+            updateFunction,
+            priority,
+            isOneShot,
+            _persistentUpdates,
+            _oneShotUpdates,
+            ref _needsSortingUpdates
             );
         }
 
@@ -299,12 +299,12 @@ namespace Base
         public Guid AddFixedUpdate(Action<float> fixedUpdateFunction, int priority = 0, bool isOneShot = false)
         {
             return AddCallback(
-                fixedUpdateFunction,
-                priority,
-                isOneShot,
-                _persistentFixedUpdates,
-                _oneShotFixedUpdates,
-                ref _needsSortingFixedUpdates
+            fixedUpdateFunction,
+            priority,
+            isOneShot,
+            _persistentFixedUpdates,
+            _oneShotFixedUpdates,
+            ref _needsSortingFixedUpdates
             );
         }
 
@@ -314,12 +314,12 @@ namespace Base
         public Guid AddLateUpdate(Action<float> lateUpdateFunction, int priority = 0, bool isOneShot = false)
         {
             return AddCallback(
-                lateUpdateFunction,
-                priority,
-                isOneShot,
-                _persistentLateUpdates,
-                _oneShotLateUpdates,
-                ref _needsSortingLateUpdates
+            lateUpdateFunction,
+            priority,
+            isOneShot,
+            _persistentLateUpdates,
+            _oneShotLateUpdates,
+            ref _needsSortingLateUpdates
             );
         }
 
@@ -432,11 +432,11 @@ namespace Base
             {
                 OnUpdate(deltaTime);
                 ExecuteCallbacks(
-                    _persistentUpdates,
-                    _oneShotUpdates,
-                    _sortedPersistentUpdates,
-                    ref _needsSortingUpdates,
-                    deltaTime
+                _persistentUpdates,
+                _oneShotUpdates,
+                _sortedPersistentUpdates,
+                ref _needsSortingUpdates,
+                deltaTime
                 );
             }
         }
@@ -450,11 +450,11 @@ namespace Base
             {
                 OnFixedUpdate(fixedDeltaTime);
                 ExecuteCallbacks(
-                    _persistentFixedUpdates,
-                    _oneShotFixedUpdates,
-                    _sortedPersistentFixedUpdates,
-                    ref _needsSortingFixedUpdates,
-                    fixedDeltaTime
+                _persistentFixedUpdates,
+                _oneShotFixedUpdates,
+                _sortedPersistentFixedUpdates,
+                ref _needsSortingFixedUpdates,
+                fixedDeltaTime
                 );
             }
         }
@@ -468,11 +468,11 @@ namespace Base
             {
                 OnLateUpdate(deltaTime);
                 ExecuteCallbacks(
-                    _persistentLateUpdates,
-                    _oneShotLateUpdates,
-                    _sortedPersistentLateUpdates,
-                    ref _needsSortingLateUpdates,
-                    deltaTime
+                _persistentLateUpdates,
+                _oneShotLateUpdates,
+                _sortedPersistentLateUpdates,
+                ref _needsSortingLateUpdates,
+                deltaTime
                 );
             }
         }
@@ -567,12 +567,12 @@ namespace Base
         /// 添加回调的通用方法
         /// </summary>
         private Guid AddCallback(
-            Action<float> function,
-            int priority,
-            bool isOneShot,
-            Dictionary<Guid, UpdateCallback> persistentCallbacks,
-            List<UpdateCallback> oneShotCallbacks,
-            ref bool needsSorting)
+        Action<float> function,
+        int priority,
+        bool isOneShot,
+        Dictionary<Guid, UpdateCallback> persistentCallbacks,
+        List<UpdateCallback> oneShotCallbacks,
+        ref bool needsSorting)
         {
             if (function == null || _isDestroyed || _owner?.IsDestroyed == true)
                 return Guid.Empty;
@@ -609,11 +609,11 @@ namespace Base
         /// 执行回调的通用方法
         /// </summary>
         private void ExecuteCallbacks(
-            Dictionary<Guid, UpdateCallback> persistentCallbacks,
-            List<UpdateCallback> oneShotCallbacks,
-            List<UpdateCallback> sortedPersistentCallbacks,
-            ref bool needsSorting,
-            float deltaTime)
+        Dictionary<Guid, UpdateCallback> persistentCallbacks,
+        List<UpdateCallback> oneShotCallbacks,
+        List<UpdateCallback> sortedPersistentCallbacks,
+        ref bool needsSorting,
+        float deltaTime)
         {
             // 执行持久化回调
             if (persistentCallbacks?.Count > 0)
@@ -636,7 +636,7 @@ namespace Base
                     var callback = sortedPersistentCallbacks[i];
                     // 检查回调是否仍然存在(可能已被移除)
                     if (persistentCallbacks.TryGetValue(callback.Id, out var existing) &&
-                        existing.Function == callback.Function)
+                    existing.Function == callback.Function)
                     {
                         try
                         {

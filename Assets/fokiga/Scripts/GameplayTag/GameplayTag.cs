@@ -1,6 +1,6 @@
 using System;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     [Serializable]
     public readonly struct GameplayTagId : IEquatable<GameplayTagId>
@@ -70,6 +70,6 @@ namespace Fokiga.GameplayTags
 
         public static bool operator !=(GameplayTag left, GameplayTag right) => !left.Equals(right);
 
-        public override string ToString() => IsValid ? _path : "<Invalid GameplayTag>";
+        public override string ToString() => IsValid ? _path : "<无效 GameplayTag>";
     }
 }

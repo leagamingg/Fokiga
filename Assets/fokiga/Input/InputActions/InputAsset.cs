@@ -15,531 +15,534 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-/// <summary>
-/// Provides programmatic access to <see cref="InputActionAsset" />, <see cref="InputActionMap" />, <see cref="InputAction" /> and <see cref="InputControlScheme" /> instances defined in asset "Assets/fokiga/Input/InputActions/InputAsset.inputactions".
-/// </summary>
-/// <remarks>
-/// This class is source generated and any manual edits will be discarded if the associated asset is reimported or modified.
-/// </remarks>
-/// <example>
-/// <code>
-/// using namespace UnityEngine;
-/// using UnityEngine.InputSystem;
-///
-/// // Example of using an InputActionMap named "Player" from a UnityEngine.MonoBehaviour implementing callback interface.
-/// public class Example : MonoBehaviour, MyActions.IPlayerActions
-/// {
-///     private MyActions_Actions m_Actions;                  // Source code representation of asset.
-///     private MyActions_Actions.PlayerActions m_Player;     // Source code representation of action map.
-///
-///     void Awake()
-///     {
-///         m_Actions = new MyActions_Actions();              // Create asset object.
-///         m_Player = m_Actions.Player;                      // Extract action map object.
-///         m_Player.AddCallbacks(this);                      // Register callback interface IPlayerActions.
-///     }
-///
-///     void OnDestroy()
-///     {
-///         m_Actions.Dispose();                              // Destroy asset object.
-///     }
-///
-///     void OnEnable()
-///     {
-///         m_Player.Enable();                                // Enable all actions within map.
-///     }
-///
-///     void OnDisable()
-///     {
-///         m_Player.Disable();                               // Disable all actions within map.
-///     }
-///
-///     #region Interface implementation of MyActions.IPlayerActions
-///
-///     // Invoked when "Move" action is either started, performed or canceled.
-///     public void OnMove(InputAction.CallbackContext context)
-///     {
-///         Debug.Log($"OnMove: {context.ReadValue&lt;Vector2&gt;()}");
-///     }
-///
-///     // Invoked when "Attack" action is either started, performed or canceled.
-///     public void OnAttack(InputAction.CallbackContext context)
-///     {
-///         Debug.Log($"OnAttack: {context.ReadValue&lt;float&gt;()}");
-///     }
-///
-///     #endregion
-/// }
-/// </code>
-/// </example>
-public partial class @InputAsset: IInputActionCollection2, IDisposable
+namespace Fokiga.Runtime.Gameplay
 {
     /// <summary>
-    /// Provides access to the underlying asset instance.
+    /// Provides programmatic access to <see cref="InputActionAsset" />, <see cref="InputActionMap" />, <see cref="InputAction" /> and <see cref="InputControlScheme" /> instances defined in asset "Assets/fokiga/Input/InputActions/InputAsset.inputactions".
     /// </summary>
-    public InputActionAsset asset { get; }
-
-    /// <summary>
-    /// Constructs a new instance.
-    /// </summary>
-    public @InputAsset()
+    /// <remarks>
+    /// This class is source generated and any manual edits will be discarded if the associated asset is reimported or modified.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// using namespace UnityEngine;
+    /// using UnityEngine.InputSystem;
+    ///
+    /// // Example of using an InputActionMap named "Player" from a UnityEngine.MonoBehaviour implementing callback interface.
+    /// public class Example : MonoBehaviour, MyActions.IPlayerActions
+    /// {
+    ///     private MyActions_Actions m_Actions;                  // Source code representation of asset.
+    ///     private MyActions_Actions.PlayerActions m_Player;     // Source code representation of action map.
+    ///
+    ///     void Awake()
+    ///     {
+    ///         m_Actions = new MyActions_Actions();              // Create asset object.
+    ///         m_Player = m_Actions.Player;                      // Extract action map object.
+    ///         m_Player.AddCallbacks(this);                      // Register callback interface IPlayerActions.
+    ///     }
+    ///
+    ///     void OnDestroy()
+    ///     {
+    ///         m_Actions.Dispose();                              // Destroy asset object.
+    ///     }
+    ///
+    ///     void OnEnable()
+    ///     {
+    ///         m_Player.Enable();                                // Enable all actions within map.
+    ///     }
+    ///
+    ///     void OnDisable()
+    ///     {
+    ///         m_Player.Disable();                               // Disable all actions within map.
+    ///     }
+    ///
+    ///     #region Interface implementation of MyActions.IPlayerActions
+    ///
+    ///     // Invoked when "Move" action is either started, performed or canceled.
+    ///     public void OnMove(InputAction.CallbackContext context)
+    ///     {
+    ///         Debug.Log($"OnMove: {context.ReadValue&lt;Vector2&gt;()}");
+    ///     }
+    ///
+    ///     // Invoked when "Attack" action is either started, performed or canceled.
+    ///     public void OnAttack(InputAction.CallbackContext context)
+    ///     {
+    ///         Debug.Log($"OnAttack: {context.ReadValue&lt;float&gt;()}");
+    ///     }
+    ///
+    ///     #endregion
+    /// }
+    /// </code>
+    /// </example>
+    public partial class @InputAsset: IInputActionCollection2, IDisposable
     {
-        asset = InputActionAsset.FromJson(@"{
-    ""name"": ""InputAsset"",
-    ""maps"": [
+        /// <summary>
+        /// Provides access to the underlying asset instance.
+        /// </summary>
+        public InputActionAsset asset { get; }
+
+        /// <summary>
+        /// Constructs a new instance.
+        /// </summary>
+        public @InputAsset()
         {
-            ""name"": ""CharacterControllerMap"",
-            ""id"": ""d2bd5029-face-46e5-beca-07dfc15daefc"",
-            ""actions"": [
-                {
-                    ""name"": ""MoveForward"",
-                    ""type"": ""Button"",
-                    ""id"": ""5a6f2eda-211c-4d2f-9a14-5b5bd878677d"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""MoveBack"",
-                    ""type"": ""Button"",
-                    ""id"": ""f4fa3fc6-eee2-49c1-ada8-147b9f2c0823"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""MoveLeft"",
-                    ""type"": ""Button"",
-                    ""id"": ""452db21d-5813-437d-8aef-f80e835d67f3"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""MoveRight"",
-                    ""type"": ""Button"",
-                    ""id"": ""293cb4d4-8e14-4d83-8ad2-7714540aeaa6"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Jump"",
-                    ""type"": ""Button"",
-                    ""id"": ""414c3100-8bb5-4fe8-b82a-7a5cf3fbed9c"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Run"",
-                    ""type"": ""Button"",
-                    ""id"": ""fce1c572-67fc-4576-a7cf-495e9fac588b"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Slip"",
-                    ""type"": ""Button"",
-                    ""id"": ""c58cf5c2-1596-4179-80fa-7bbefb12521a"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": """",
-                    ""id"": ""057ddc37-1a05-4876-9aa4-f6d5ae1f0e2a"",
-                    ""path"": ""<Keyboard>/w"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MoveForward"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""2001acdb-689c-48e4-b482-5773a2c985dd"",
-                    ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MoveBack"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""79bb47ad-52e0-49c4-9067-0e208189ec80"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MoveLeft"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""247245d0-7309-4149-9ab2-5840e5046678"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MoveRight"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""c2af4507-5915-4c3f-8789-831a8e619cfb"",
-                    ""path"": ""<Keyboard>/space"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Jump"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""5c930534-f809-4c6f-bcac-23232301b85f"",
-                    ""path"": ""<Keyboard>/shift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Run"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9b5d9277-d7d4-4767-8a95-ef8315725014"",
-                    ""path"": ""<Keyboard>/c"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Slip"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                }
-            ]
+            asset = InputActionAsset.FromJson(@"{
+        ""name"": ""InputAsset"",
+        ""maps"": [
+            {
+                ""name"": ""CharacterControllerMap"",
+                ""id"": ""d2bd5029-face-46e5-beca-07dfc15daefc"",
+                ""actions"": [
+                    {
+                        ""name"": ""MoveForward"",
+                        ""type"": ""Button"",
+                        ""id"": ""5a6f2eda-211c-4d2f-9a14-5b5bd878677d"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""MoveBack"",
+                        ""type"": ""Button"",
+                        ""id"": ""f4fa3fc6-eee2-49c1-ada8-147b9f2c0823"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""MoveLeft"",
+                        ""type"": ""Button"",
+                        ""id"": ""452db21d-5813-437d-8aef-f80e835d67f3"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""MoveRight"",
+                        ""type"": ""Button"",
+                        ""id"": ""293cb4d4-8e14-4d83-8ad2-7714540aeaa6"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""Jump"",
+                        ""type"": ""Button"",
+                        ""id"": ""414c3100-8bb5-4fe8-b82a-7a5cf3fbed9c"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""Run"",
+                        ""type"": ""Button"",
+                        ""id"": ""fce1c572-67fc-4576-a7cf-495e9fac588b"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    },
+                    {
+                        ""name"": ""Slip"",
+                        ""type"": ""Button"",
+                        ""id"": ""c58cf5c2-1596-4179-80fa-7bbefb12521a"",
+                        ""expectedControlType"": """",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": false
+                    }
+                ],
+                ""bindings"": [
+                    {
+                        ""name"": """",
+                        ""id"": ""057ddc37-1a05-4876-9aa4-f6d5ae1f0e2a"",
+                        ""path"": ""<Keyboard>/w"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""MoveForward"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""2001acdb-689c-48e4-b482-5773a2c985dd"",
+                        ""path"": ""<Keyboard>/s"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""MoveBack"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""79bb47ad-52e0-49c4-9067-0e208189ec80"",
+                        ""path"": ""<Keyboard>/a"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""MoveLeft"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""247245d0-7309-4149-9ab2-5840e5046678"",
+                        ""path"": ""<Keyboard>/d"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""MoveRight"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""c2af4507-5915-4c3f-8789-831a8e619cfb"",
+                        ""path"": ""<Keyboard>/space"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""Jump"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""5c930534-f809-4c6f-bcac-23232301b85f"",
+                        ""path"": ""<Keyboard>/shift"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""Run"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""9b5d9277-d7d4-4767-8a95-ef8315725014"",
+                        ""path"": ""<Keyboard>/c"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""Slip"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    }
+                ]
+            }
+        ],
+        ""controlSchemes"": []
+    }");
+            // CharacterControllerMap
+            m_CharacterControllerMap = asset.FindActionMap("CharacterControllerMap", throwIfNotFound: true);
+            m_CharacterControllerMap_MoveForward = m_CharacterControllerMap.FindAction("MoveForward", throwIfNotFound: true);
+            m_CharacterControllerMap_MoveBack = m_CharacterControllerMap.FindAction("MoveBack", throwIfNotFound: true);
+            m_CharacterControllerMap_MoveLeft = m_CharacterControllerMap.FindAction("MoveLeft", throwIfNotFound: true);
+            m_CharacterControllerMap_MoveRight = m_CharacterControllerMap.FindAction("MoveRight", throwIfNotFound: true);
+            m_CharacterControllerMap_Jump = m_CharacterControllerMap.FindAction("Jump", throwIfNotFound: true);
+            m_CharacterControllerMap_Run = m_CharacterControllerMap.FindAction("Run", throwIfNotFound: true);
+            m_CharacterControllerMap_Slip = m_CharacterControllerMap.FindAction("Slip", throwIfNotFound: true);
         }
-    ],
-    ""controlSchemes"": []
-}");
+
+        ~@InputAsset()
+        {
+            UnityEngine.Debug.Assert(!m_CharacterControllerMap.enabled, "This will cause a leak and performance issues, InputAsset.CharacterControllerMap.Disable() has not been called.");
+        }
+
+        /// <summary>
+        /// Destroys this asset and all associated <see cref="InputAction"/> instances.
+        /// </summary>
+        public void Dispose()
+        {
+            UnityEngine.Object.Destroy(asset);
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.bindingMask" />
+        public InputBinding? bindingMask
+        {
+            get => asset.bindingMask;
+            set => asset.bindingMask = value;
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.devices" />
+        public ReadOnlyArray<InputDevice>? devices
+        {
+            get => asset.devices;
+            set => asset.devices = value;
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.controlSchemes" />
+        public ReadOnlyArray<InputControlScheme> controlSchemes => asset.controlSchemes;
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Contains(InputAction)" />
+        public bool Contains(InputAction action)
+        {
+            return asset.Contains(action);
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.GetEnumerator()" />
+        public IEnumerator<InputAction> GetEnumerator()
+        {
+            return asset.GetEnumerator();
+        }
+
+        /// <inheritdoc cref="IEnumerable.GetEnumerator()" />
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Enable()" />
+        public void Enable()
+        {
+            asset.Enable();
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Disable()" />
+        public void Disable()
+        {
+            asset.Disable();
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.bindings" />
+        public IEnumerable<InputBinding> bindings => asset.bindings;
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.FindAction(string, bool)" />
+        public InputAction FindAction(string actionNameOrId, bool throwIfNotFound = false)
+        {
+            return asset.FindAction(actionNameOrId, throwIfNotFound);
+        }
+
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.FindBinding(InputBinding, out InputAction)" />
+        public int FindBinding(InputBinding bindingMask, out InputAction action)
+        {
+            return asset.FindBinding(bindingMask, out action);
+        }
+
         // CharacterControllerMap
-        m_CharacterControllerMap = asset.FindActionMap("CharacterControllerMap", throwIfNotFound: true);
-        m_CharacterControllerMap_MoveForward = m_CharacterControllerMap.FindAction("MoveForward", throwIfNotFound: true);
-        m_CharacterControllerMap_MoveBack = m_CharacterControllerMap.FindAction("MoveBack", throwIfNotFound: true);
-        m_CharacterControllerMap_MoveLeft = m_CharacterControllerMap.FindAction("MoveLeft", throwIfNotFound: true);
-        m_CharacterControllerMap_MoveRight = m_CharacterControllerMap.FindAction("MoveRight", throwIfNotFound: true);
-        m_CharacterControllerMap_Jump = m_CharacterControllerMap.FindAction("Jump", throwIfNotFound: true);
-        m_CharacterControllerMap_Run = m_CharacterControllerMap.FindAction("Run", throwIfNotFound: true);
-        m_CharacterControllerMap_Slip = m_CharacterControllerMap.FindAction("Slip", throwIfNotFound: true);
-    }
-
-    ~@InputAsset()
-    {
-        UnityEngine.Debug.Assert(!m_CharacterControllerMap.enabled, "This will cause a leak and performance issues, InputAsset.CharacterControllerMap.Disable() has not been called.");
-    }
-
-    /// <summary>
-    /// Destroys this asset and all associated <see cref="InputAction"/> instances.
-    /// </summary>
-    public void Dispose()
-    {
-        UnityEngine.Object.Destroy(asset);
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.bindingMask" />
-    public InputBinding? bindingMask
-    {
-        get => asset.bindingMask;
-        set => asset.bindingMask = value;
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.devices" />
-    public ReadOnlyArray<InputDevice>? devices
-    {
-        get => asset.devices;
-        set => asset.devices = value;
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.controlSchemes" />
-    public ReadOnlyArray<InputControlScheme> controlSchemes => asset.controlSchemes;
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Contains(InputAction)" />
-    public bool Contains(InputAction action)
-    {
-        return asset.Contains(action);
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.GetEnumerator()" />
-    public IEnumerator<InputAction> GetEnumerator()
-    {
-        return asset.GetEnumerator();
-    }
-
-    /// <inheritdoc cref="IEnumerable.GetEnumerator()" />
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Enable()" />
-    public void Enable()
-    {
-        asset.Enable();
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.Disable()" />
-    public void Disable()
-    {
-        asset.Disable();
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.bindings" />
-    public IEnumerable<InputBinding> bindings => asset.bindings;
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.FindAction(string, bool)" />
-    public InputAction FindAction(string actionNameOrId, bool throwIfNotFound = false)
-    {
-        return asset.FindAction(actionNameOrId, throwIfNotFound);
-    }
-
-    /// <inheritdoc cref="UnityEngine.InputSystem.InputActionAsset.FindBinding(InputBinding, out InputAction)" />
-    public int FindBinding(InputBinding bindingMask, out InputAction action)
-    {
-        return asset.FindBinding(bindingMask, out action);
-    }
-
-    // CharacterControllerMap
-    private readonly InputActionMap m_CharacterControllerMap;
-    private List<ICharacterControllerMapActions> m_CharacterControllerMapActionsCallbackInterfaces = new List<ICharacterControllerMapActions>();
-    private readonly InputAction m_CharacterControllerMap_MoveForward;
-    private readonly InputAction m_CharacterControllerMap_MoveBack;
-    private readonly InputAction m_CharacterControllerMap_MoveLeft;
-    private readonly InputAction m_CharacterControllerMap_MoveRight;
-    private readonly InputAction m_CharacterControllerMap_Jump;
-    private readonly InputAction m_CharacterControllerMap_Run;
-    private readonly InputAction m_CharacterControllerMap_Slip;
-    /// <summary>
-    /// Provides access to input actions defined in input action map "CharacterControllerMap".
-    /// </summary>
-    public struct CharacterControllerMapActions
-    {
-        private @InputAsset m_Wrapper;
-
+        private readonly InputActionMap m_CharacterControllerMap;
+        private List<ICharacterControllerMapActions> m_CharacterControllerMapActionsCallbackInterfaces = new List<ICharacterControllerMapActions>();
+        private readonly InputAction m_CharacterControllerMap_MoveForward;
+        private readonly InputAction m_CharacterControllerMap_MoveBack;
+        private readonly InputAction m_CharacterControllerMap_MoveLeft;
+        private readonly InputAction m_CharacterControllerMap_MoveRight;
+        private readonly InputAction m_CharacterControllerMap_Jump;
+        private readonly InputAction m_CharacterControllerMap_Run;
+        private readonly InputAction m_CharacterControllerMap_Slip;
         /// <summary>
-        /// Construct a new instance of the input action map wrapper class.
+        /// Provides access to input actions defined in input action map "CharacterControllerMap".
         /// </summary>
-        public CharacterControllerMapActions(@InputAsset wrapper) { m_Wrapper = wrapper; }
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/MoveForward".
-        /// </summary>
-        public InputAction @MoveForward => m_Wrapper.m_CharacterControllerMap_MoveForward;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/MoveBack".
-        /// </summary>
-        public InputAction @MoveBack => m_Wrapper.m_CharacterControllerMap_MoveBack;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/MoveLeft".
-        /// </summary>
-        public InputAction @MoveLeft => m_Wrapper.m_CharacterControllerMap_MoveLeft;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/MoveRight".
-        /// </summary>
-        public InputAction @MoveRight => m_Wrapper.m_CharacterControllerMap_MoveRight;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/Jump".
-        /// </summary>
-        public InputAction @Jump => m_Wrapper.m_CharacterControllerMap_Jump;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/Run".
-        /// </summary>
-        public InputAction @Run => m_Wrapper.m_CharacterControllerMap_Run;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControllerMap/Slip".
-        /// </summary>
-        public InputAction @Slip => m_Wrapper.m_CharacterControllerMap_Slip;
-        /// <summary>
-        /// Provides access to the underlying input action map instance.
-        /// </summary>
-        public InputActionMap Get() { return m_Wrapper.m_CharacterControllerMap; }
-        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
-        public void Enable() { Get().Enable(); }
-        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
-        public void Disable() { Get().Disable(); }
-        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
-        public bool enabled => Get().enabled;
-        /// <summary>
-        /// Implicitly converts an <see ref="CharacterControllerMapActions" /> to an <see ref="InputActionMap" /> instance.
-        /// </summary>
-        public static implicit operator InputActionMap(CharacterControllerMapActions set) { return set.Get(); }
-        /// <summary>
-        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
-        /// </summary>
-        /// <param name="instance">Callback instance.</param>
-        /// <remarks>
-        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
-        /// </remarks>
-        /// <seealso cref="CharacterControllerMapActions" />
-        public void AddCallbacks(ICharacterControllerMapActions instance)
+        public struct CharacterControllerMapActions
         {
-            if (instance == null || m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Add(instance);
-            @MoveForward.started += instance.OnMoveForward;
-            @MoveForward.performed += instance.OnMoveForward;
-            @MoveForward.canceled += instance.OnMoveForward;
-            @MoveBack.started += instance.OnMoveBack;
-            @MoveBack.performed += instance.OnMoveBack;
-            @MoveBack.canceled += instance.OnMoveBack;
-            @MoveLeft.started += instance.OnMoveLeft;
-            @MoveLeft.performed += instance.OnMoveLeft;
-            @MoveLeft.canceled += instance.OnMoveLeft;
-            @MoveRight.started += instance.OnMoveRight;
-            @MoveRight.performed += instance.OnMoveRight;
-            @MoveRight.canceled += instance.OnMoveRight;
-            @Jump.started += instance.OnJump;
-            @Jump.performed += instance.OnJump;
-            @Jump.canceled += instance.OnJump;
-            @Run.started += instance.OnRun;
-            @Run.performed += instance.OnRun;
-            @Run.canceled += instance.OnRun;
-            @Slip.started += instance.OnSlip;
-            @Slip.performed += instance.OnSlip;
-            @Slip.canceled += instance.OnSlip;
-        }
+            private @InputAsset m_Wrapper;
 
-        /// <summary>
-        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
-        /// </summary>
-        /// <remarks>
-        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
-        /// </remarks>
-        /// <seealso cref="CharacterControllerMapActions" />
-        private void UnregisterCallbacks(ICharacterControllerMapActions instance)
-        {
-            @MoveForward.started -= instance.OnMoveForward;
-            @MoveForward.performed -= instance.OnMoveForward;
-            @MoveForward.canceled -= instance.OnMoveForward;
-            @MoveBack.started -= instance.OnMoveBack;
-            @MoveBack.performed -= instance.OnMoveBack;
-            @MoveBack.canceled -= instance.OnMoveBack;
-            @MoveLeft.started -= instance.OnMoveLeft;
-            @MoveLeft.performed -= instance.OnMoveLeft;
-            @MoveLeft.canceled -= instance.OnMoveLeft;
-            @MoveRight.started -= instance.OnMoveRight;
-            @MoveRight.performed -= instance.OnMoveRight;
-            @MoveRight.canceled -= instance.OnMoveRight;
-            @Jump.started -= instance.OnJump;
-            @Jump.performed -= instance.OnJump;
-            @Jump.canceled -= instance.OnJump;
-            @Run.started -= instance.OnRun;
-            @Run.performed -= instance.OnRun;
-            @Run.canceled -= instance.OnRun;
-            @Slip.started -= instance.OnSlip;
-            @Slip.performed -= instance.OnSlip;
-            @Slip.canceled -= instance.OnSlip;
-        }
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public CharacterControllerMapActions(@InputAsset wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/MoveForward".
+            /// </summary>
+            public InputAction @MoveForward => m_Wrapper.m_CharacterControllerMap_MoveForward;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/MoveBack".
+            /// </summary>
+            public InputAction @MoveBack => m_Wrapper.m_CharacterControllerMap_MoveBack;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/MoveLeft".
+            /// </summary>
+            public InputAction @MoveLeft => m_Wrapper.m_CharacterControllerMap_MoveLeft;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/MoveRight".
+            /// </summary>
+            public InputAction @MoveRight => m_Wrapper.m_CharacterControllerMap_MoveRight;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/Jump".
+            /// </summary>
+            public InputAction @Jump => m_Wrapper.m_CharacterControllerMap_Jump;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/Run".
+            /// </summary>
+            public InputAction @Run => m_Wrapper.m_CharacterControllerMap_Run;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/Slip".
+            /// </summary>
+            public InputAction @Slip => m_Wrapper.m_CharacterControllerMap_Slip;
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_CharacterControllerMap; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="CharacterControllerMapActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(CharacterControllerMapActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="CharacterControllerMapActions" />
+            public void AddCallbacks(ICharacterControllerMapActions instance)
+            {
+                if (instance == null || m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Add(instance);
+                @MoveForward.started += instance.OnMoveForward;
+                @MoveForward.performed += instance.OnMoveForward;
+                @MoveForward.canceled += instance.OnMoveForward;
+                @MoveBack.started += instance.OnMoveBack;
+                @MoveBack.performed += instance.OnMoveBack;
+                @MoveBack.canceled += instance.OnMoveBack;
+                @MoveLeft.started += instance.OnMoveLeft;
+                @MoveLeft.performed += instance.OnMoveLeft;
+                @MoveLeft.canceled += instance.OnMoveLeft;
+                @MoveRight.started += instance.OnMoveRight;
+                @MoveRight.performed += instance.OnMoveRight;
+                @MoveRight.canceled += instance.OnMoveRight;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
+                @Run.started += instance.OnRun;
+                @Run.performed += instance.OnRun;
+                @Run.canceled += instance.OnRun;
+                @Slip.started += instance.OnSlip;
+                @Slip.performed += instance.OnSlip;
+                @Slip.canceled += instance.OnSlip;
+            }
 
-        /// <summary>
-        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />.
-        /// </summary>
-        /// <seealso cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />
-        public void RemoveCallbacks(ICharacterControllerMapActions instance)
-        {
-            if (m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Remove(instance))
-                UnregisterCallbacks(instance);
-        }
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="CharacterControllerMapActions" />
+            private void UnregisterCallbacks(ICharacterControllerMapActions instance)
+            {
+                @MoveForward.started -= instance.OnMoveForward;
+                @MoveForward.performed -= instance.OnMoveForward;
+                @MoveForward.canceled -= instance.OnMoveForward;
+                @MoveBack.started -= instance.OnMoveBack;
+                @MoveBack.performed -= instance.OnMoveBack;
+                @MoveBack.canceled -= instance.OnMoveBack;
+                @MoveLeft.started -= instance.OnMoveLeft;
+                @MoveLeft.performed -= instance.OnMoveLeft;
+                @MoveLeft.canceled -= instance.OnMoveLeft;
+                @MoveRight.started -= instance.OnMoveRight;
+                @MoveRight.performed -= instance.OnMoveRight;
+                @MoveRight.canceled -= instance.OnMoveRight;
+                @Jump.started -= instance.OnJump;
+                @Jump.performed -= instance.OnJump;
+                @Jump.canceled -= instance.OnJump;
+                @Run.started -= instance.OnRun;
+                @Run.performed -= instance.OnRun;
+                @Run.canceled -= instance.OnRun;
+                @Slip.started -= instance.OnSlip;
+                @Slip.performed -= instance.OnSlip;
+                @Slip.canceled -= instance.OnSlip;
+            }
 
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />.
+            /// </summary>
+            /// <seealso cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />
+            public void RemoveCallbacks(ICharacterControllerMapActions instance)
+            {
+                if (m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="CharacterControllerMapActions.AddCallbacks(ICharacterControllerMapActions)" />
+            /// <seealso cref="CharacterControllerMapActions.RemoveCallbacks(ICharacterControllerMapActions)" />
+            /// <seealso cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />
+            public void SetCallbacks(ICharacterControllerMapActions instance)
+            {
+                foreach (var item in m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
         /// <summary>
-        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// Provides a new <see cref="CharacterControllerMapActions" /> instance referencing this action map.
         /// </summary>
-        /// <remarks>
-        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
-        /// </remarks>
+        public CharacterControllerMapActions @CharacterControllerMap => new CharacterControllerMapActions(this);
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "CharacterControllerMap" which allows adding and removing callbacks.
+        /// </summary>
         /// <seealso cref="CharacterControllerMapActions.AddCallbacks(ICharacterControllerMapActions)" />
         /// <seealso cref="CharacterControllerMapActions.RemoveCallbacks(ICharacterControllerMapActions)" />
-        /// <seealso cref="CharacterControllerMapActions.UnregisterCallbacks(ICharacterControllerMapActions)" />
-        public void SetCallbacks(ICharacterControllerMapActions instance)
+        public interface ICharacterControllerMapActions
         {
-            foreach (var item in m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces)
-                UnregisterCallbacks(item);
-            m_Wrapper.m_CharacterControllerMapActionsCallbackInterfaces.Clear();
-            AddCallbacks(instance);
+            /// <summary>
+            /// Method invoked when associated input action "MoveForward" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveForward(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveBack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveBack(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveLeft(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveRight(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnJump(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Run" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnRun(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slip" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlip(InputAction.CallbackContext context);
         }
-    }
-    /// <summary>
-    /// Provides a new <see cref="CharacterControllerMapActions" /> instance referencing this action map.
-    /// </summary>
-    public CharacterControllerMapActions @CharacterControllerMap => new CharacterControllerMapActions(this);
-    /// <summary>
-    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "CharacterControllerMap" which allows adding and removing callbacks.
-    /// </summary>
-    /// <seealso cref="CharacterControllerMapActions.AddCallbacks(ICharacterControllerMapActions)" />
-    /// <seealso cref="CharacterControllerMapActions.RemoveCallbacks(ICharacterControllerMapActions)" />
-    public interface ICharacterControllerMapActions
-    {
-        /// <summary>
-        /// Method invoked when associated input action "MoveForward" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMoveForward(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "MoveBack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMoveBack(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "MoveLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMoveLeft(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "MoveRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMoveRight(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnJump(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Run" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnRun(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Slip" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSlip(InputAction.CallbackContext context);
     }
 }

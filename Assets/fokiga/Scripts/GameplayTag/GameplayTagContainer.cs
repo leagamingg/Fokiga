@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     public sealed class GameplayTagContainer
     {

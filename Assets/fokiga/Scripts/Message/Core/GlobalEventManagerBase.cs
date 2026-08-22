@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Event
+namespace Fokiga.Runtime.Core
 {
     /// <summary>
     /// 全局事件管理器实现
@@ -15,7 +15,7 @@ namespace Event
 
         // 全局事件存储：事件名称 -> 监听器列表
         private readonly Dictionary<string, List<Action<EventDefinition>>> _globalEvents =
-            new Dictionary<string, List<Action<EventDefinition>>>();
+        new Dictionary<string, List<Action<EventDefinition>>>();
 
         public static GlobalEventManager Instance
         {
@@ -180,14 +180,14 @@ namespace Event
 
         // 新增扩展方法：直接将 MonoBehaviour 作为订阅者对象
         public static void AddGlobalListener<TEvt>(this MonoBehaviour sender, Action<TEvt> listener)
-            where TEvt : EventDefinition, new()
+        where TEvt : EventDefinition, new()
         {
             GlobalEventManager.Instance.AddListener(listener);
         }
 
         // 新增扩展方法：移除订阅
         public static void RemoveGlobalListener<TEvt>(this MonoBehaviour sender, Action<TEvt> listener)
-            where TEvt : EventDefinition, new()
+        where TEvt : EventDefinition, new()
         {
             GlobalEventManager.Instance.RemoveListener(listener);
         }

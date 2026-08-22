@@ -1,12 +1,12 @@
 #if UNITY_INCLUDE_TESTS
 using System.Collections;
 using System.Collections.Generic;
-using Fokiga.GameplayTags;
+using Fokiga.Runtime.Gameplay;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Fokiga.GameplayTags.Tests
+namespace Fokiga.Tests
 {
     public sealed class GameplayTagTests
     {
@@ -186,15 +186,30 @@ namespace Fokiga.GameplayTags.Tests
             var duplicate = _database.AddRoot("Character");
             var report = _database.Validate();
             Assert.IsFalse(report.IsValid);
-            Assert.That(report.Errors, Has.Some.Contains("Duplicate tag path"));
+            Assert.That(report.Errors, Has.Some.Contains("重复的标签路径"));
 
             var first = _database.AddRoot("CycleA");
             var second = _database.AddChild("CycleB", first.Guid);
             _database.Reparent(first.Guid, second.Guid);
             report = _database.Validate();
             Assert.IsFalse(report.IsValid);
-            Assert.That(report.Errors, Has.Some.Contains("Cycle detected"));
+            Assert.That(report.Errors, Has.Some.Contains("循环关系"));
             Assert.IsNotNull(duplicate);
+        }
+
+        [Test]
+        public void ValidationRejectsMalformedGuids()
+        {
+            var database = ScriptableObject.CreateInstance<GameplayTagDatabase>();
+            database.AddRoot("Valid");
+            var nodes = database.Nodes as List<GameplayTagNodeData>;
+            Assert.IsNotNull(nodes);
+            nodes.Add(new GameplayTagNodeData("not-a-guid", "Invalid", string.Empty));
+
+            var report = database.Validate();
+            Assert.IsFalse(report.IsValid);
+            Assert.That(report.Errors, Has.Some.Contains("32 位十六进制 GUID"));
+            Object.DestroyImmediate(database);
         }
 
         [UnityTest]

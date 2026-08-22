@@ -4,13 +4,13 @@ using UnityEngine.SceneManagement;
 
 namespace UnityChan
 {
-	[ExecuteInEditMode]
-	public class SplashScreen : MonoBehaviour
-	{
+    [ExecuteInEditMode]
+    public class SplashScreen : MonoBehaviour
+    {
 
-        void NextLevel ()
-		{
-			//SceneManager.LoadScene();
-		}
-	}
+        void NextLevel()
+        {
+            //SceneManager.LoadScene();
+        }
+    }
 }

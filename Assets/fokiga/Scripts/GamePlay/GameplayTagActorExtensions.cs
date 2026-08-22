@@ -1,14 +1,14 @@
-using Fokiga.GameplayTags;
+using Fokiga.Runtime.Core;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     public static class GameplayTagActorExtensions
     {
         public static GameplayTagComponent GetGameplayTagComponent(this ActorBase actor)
         {
             return actor?.RealObject != null
-                ? actor.RealObject.GetComponent<GameplayTagComponent>()
-                : null;
+            ? actor.RealObject.GetComponent<GameplayTagComponent>()
+            : null;
         }
 
         public static bool HasGameplayTag(this ActorBase actor, GameplayTag tag)

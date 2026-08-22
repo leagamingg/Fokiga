@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Event
+namespace Fokiga.Runtime.Core
 {
     /// <summary>
     /// 局部事件管理器实现
     /// </summary>
-    public class LocalEventManager
+    public class MessageLocalEventManager
     {
         // 使用更高效的数据结构：实例 -> (事件名称 -> 监听器列表)
         private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> _localEvents =
-            new Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>>();
+        new Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>>();
 
         // 缓存事件类型信息以避免重复创建实例
         private static readonly Dictionary<Type, (string EventName, EventScope Scope)> EventTypeCache =
-            new Dictionary<Type, (string, EventScope)>();
+        new Dictionary<Type, (string, EventScope)>();
 
         // 构造函数
-        public LocalEventManager()
+        public MessageLocalEventManager()
         {
             Initialize();
         }
@@ -115,7 +115,7 @@ namespace Event
             Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
             if (_localEvents.TryGetValue(instance, out var instanceEventDict) &&
-                instanceEventDict.TryGetValue(eventName, out var listeners))
+            instanceEventDict.TryGetValue(eventName, out var listeners))
             {
                 int removedCount = listeners.RemoveAll(l => l == baseListener);
 
@@ -174,7 +174,7 @@ namespace Event
             }
 
             if (_localEvents.TryGetValue(instance, out var instanceEventDict) &&
-                instanceEventDict.TryGetValue(eventName, out var listeners))
+            instanceEventDict.TryGetValue(eventName, out var listeners))
             {
                 // 创建副本以避免在迭代过程中修改集合
                 var listenersCopy = listeners.ToArray();
@@ -231,8 +231,8 @@ namespace Event
         /// <summary>
         /// 为当前实例添加局部事件监听器
         /// </summary>
-        public static void AddLocalListener<TEvt>(this object instance, LocalEventManager manager, Action<TEvt> listener)
-            where TEvt : EventDefinition, new()
+        public static void AddLocalListener<TEvt>(this object instance, MessageLocalEventManager manager, Action<TEvt> listener)
+        where TEvt : EventDefinition, new()
         {
             manager.AddListener(instance, listener);
         }
@@ -240,8 +240,8 @@ namespace Event
         /// <summary>
         /// 为当前实例移除局部事件监听器
         /// </summary>
-        public static void RemoveLocalListener<TEvt>(this object instance, LocalEventManager manager, Action<TEvt> listener)
-            where TEvt : EventDefinition, new()
+        public static void RemoveLocalListener<TEvt>(this object instance, MessageLocalEventManager manager, Action<TEvt> listener)
+        where TEvt : EventDefinition, new()
         {
             manager.RemoveListener(instance, listener);
         }
@@ -249,7 +249,7 @@ namespace Event
         /// <summary>
         /// 移除当前实例的所有局部事件监听器
         /// </summary>
-        public static void RemoveAllLocalListeners(this object instance, LocalEventManager manager)
+        public static void RemoveAllLocalListeners(this object instance, MessageLocalEventManager manager)
         {
             manager.RemoveAllListeners(instance);
         }
@@ -257,8 +257,8 @@ namespace Event
         /// <summary>
         /// 从当前实例广播局部事件
         /// </summary>
-        public static void BroadcastLocalEvent<TEvt>(this object instance, LocalEventManager manager, TEvt eventData)
-            where TEvt : EventDefinition
+        public static void BroadcastLocalEvent<TEvt>(this object instance, MessageLocalEventManager manager, TEvt eventData)
+        where TEvt : EventDefinition
         {
             manager.Broadcast(instance, eventData);
         }
@@ -266,7 +266,7 @@ namespace Event
         /// <summary>
         /// 获取当前实例的事件监听器数量
         /// </summary>
-        public static int GetLocalListenerCount(this object instance, LocalEventManager manager, string eventName = null)
+        public static int GetLocalListenerCount(this object instance, MessageLocalEventManager manager, string eventName = null)
         {
             return manager.GetListenerCount(instance, eventName);
         }

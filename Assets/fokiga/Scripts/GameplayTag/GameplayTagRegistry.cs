@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Fokiga.GameplayTags
+namespace Fokiga.Runtime.Gameplay
 {
     public static class GameplayTagRegistry
     {
@@ -70,7 +70,7 @@ namespace Fokiga.GameplayTags
             var database = Resources.Load<GameplayTagDatabase>("GameplayTags");
             if (database == null)
             {
-                Debug.LogError("GameplayTag database was not found at Resources/GameplayTags.asset.");
+                Debug.LogError("未找到 GameplayTag 数据库：Resources/GameplayTags.asset。");
                 Initialize(null);
                 return;
             }
@@ -89,7 +89,7 @@ namespace Fokiga.GameplayTags
 
                 if (_initialized && Application.isPlaying)
                 {
-                    Debug.LogError("GameplayTagRegistry cannot be rebuilt after runtime initialization.");
+                    Debug.LogError("GameplayTag 注册表在运行时初始化后不能重建。");
                     return false;
                 }
 
@@ -113,7 +113,7 @@ namespace Fokiga.GameplayTags
                 {
                     foreach (var error in report.Errors)
                     {
-                        Debug.LogError($"GameplayTag database error: {error}", database);
+                        Debug.LogError($"GameplayTag 数据库错误：{error}", database);
                     }
 
                     return false;
@@ -250,9 +250,9 @@ namespace Fokiga.GameplayTags
             }
 
             var orderedNodes = database.Nodes
-                .OrderBy(node => pathByGuid[node.Guid], StringComparer.Ordinal)
-                .ThenBy(node => node.Guid, StringComparer.Ordinal)
-                .ToList();
+            .OrderBy(node => pathByGuid[node.Guid], StringComparer.Ordinal)
+            .ThenBy(node => node.Guid, StringComparer.Ordinal)
+            .ToList();
 
             _wordCount = Math.Max(1, (orderedNodes.Count + 63) / 64);
             _nodes = new RuntimeNode[orderedNodes.Count];
@@ -276,8 +276,8 @@ namespace Fokiga.GameplayTags
             }
 
             var children = Enumerable.Range(0, orderedNodes.Count)
-                .Select(_ => new List<int>())
-                .ToArray();
+            .Select(_ => new List<int>())
+            .ToArray();
 
             for (var index = 0; index < orderedNodes.Count; index++)
             {
@@ -310,9 +310,9 @@ namespace Fokiga.GameplayTags
                 _nodes[index].Descendants = descendants.ToArray();
                 _nodes[index].ChildTags = _nodes[index].Children.Select(id => _tags[id]).ToArray();
                 _nodes[index].AncestorTags = _nodes[index].Ancestors
-                    .Where(id => id != index)
-                    .Select(id => _tags[id])
-                    .ToArray();
+                .Where(id => id != index)
+                .Select(id => _tags[id])
+                .ToArray();
                 _nodes[index].DescendantTags = _nodes[index].Descendants.Select(id => _tags[id]).ToArray();
             }
         }

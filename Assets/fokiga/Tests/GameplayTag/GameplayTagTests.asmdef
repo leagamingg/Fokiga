@@ -1,6 +1,6 @@
 {
   "name": "Fokiga.GameplayTags.Tests",
-  "rootNamespace": "Fokiga.GameplayTags.Tests",
+  "rootNamespace": "Fokiga.Tests",
   "references": [
     "Fokiga.GameplayTags"
   ],

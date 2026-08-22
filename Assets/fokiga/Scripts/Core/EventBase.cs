@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Event
+namespace Fokiga.Runtime.Core
 {
     /// <summary>
     /// 事件作用域枚举
