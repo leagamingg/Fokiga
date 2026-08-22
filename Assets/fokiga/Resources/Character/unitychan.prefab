@@ -7187,6 +7187,7 @@ GameObject:
   - component: {fileID: 5400000}
   - component: {fileID: 11400002}
   - component: {fileID: 11400000}
+  - component: {fileID: 11400003}
   m_Layer: 0
   m_Name: unitychan
   m_TagString: Untagged
@@ -7316,8 +7317,8 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e658bfc1e524494b9e54a1c92d8c1e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   animations:
   - {fileID: 7400000, guid: 6394472d24c9347e5bb789ec1f15e5bb, type: 2}
   - {fileID: 7400000, guid: 06b76ba9895174fc19d91c361e7c911b, type: 2}
@@ -7338,3 +7339,17 @@ MonoBehaviour:
   - {fileID: 7400000, guid: 8564dc45968774e70ad835503fda627e, type: 2}
   delayWeight: 0.3
   isKeepFace: 0
+--- !u!114 &11400003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6478899aabbccddeeff05, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _tagGuids:
+  - 10000000000000000000000000000003

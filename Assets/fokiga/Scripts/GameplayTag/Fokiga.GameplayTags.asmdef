@@ -1,0 +1,14 @@
+{
+  "name": "Fokiga.GameplayTags",
+  "rootNamespace": "Fokiga.GameplayTags",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
