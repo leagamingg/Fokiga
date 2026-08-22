@@ -10,38 +10,38 @@ namespace Fokiga.Tests
 {
     public sealed class GameplayTagTests
     {
-        private GameplayTagDatabase _database;
-        private bool _ownsDatabase;
+        private GameplayTagDatabase mDatabase;
+        private bool mOwnsDatabase;
 
         [SetUp]
         public void SetUp()
         {
             if (Application.isPlaying)
             {
-                _database = Resources.Load<GameplayTagDatabase>("GameplayTags");
-                Assert.IsNotNull(_database);
-                _ownsDatabase = false;
+                mDatabase = Resources.Load<GameplayTagDatabase>("GameplayTags");
+                Assert.IsNotNull(mDatabase);
+                mOwnsDatabase = false;
                 return;
             }
 
-            _database = ScriptableObject.CreateInstance<GameplayTagDatabase>();
-            _ownsDatabase = true;
-            var character = _database.AddRoot("Character");
-            var player = _database.AddChild("Player", character.Guid);
-            _database.AddChild("Melee", player.Guid);
-            _database.AddChild("Ranged", player.Guid);
-            var enemy = _database.AddChild("Enemy", character.Guid);
-            _database.AddChild("Boss", enemy.Guid);
+            mDatabase = ScriptableObject.CreateInstance<GameplayTagDatabase>();
+            mOwnsDatabase = true;
+            var character = mDatabase.AddRoot("Character");
+            var player = mDatabase.AddChild("Player", character.Guid);
+            mDatabase.AddChild("Melee", player.Guid);
+            mDatabase.AddChild("Ranged", player.Guid);
+            var enemy = mDatabase.AddChild("Enemy", character.Guid);
+            mDatabase.AddChild("Boss", enemy.Guid);
 
-            Assert.IsTrue(GameplayTagRegistry.Initialize(_database));
+            Assert.IsTrue(GameplayTagRegistry.Initialize(mDatabase));
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (_ownsDatabase)
+            if (mOwnsDatabase)
             {
-                Object.DestroyImmediate(_database);
+                Object.DestroyImmediate(mDatabase);
             }
         }
 
@@ -134,10 +134,10 @@ namespace Fokiga.Tests
         [Test]
         public void RenameKeepsGuidLookupStable()
         {
-            var player = _database.Nodes[1];
+            var player = mDatabase.Nodes[1];
             var guid = player.Guid;
-            Assert.IsTrue(_database.Rename(guid, "User"));
-            Assert.IsTrue(GameplayTagRegistry.Initialize(_database));
+            Assert.IsTrue(mDatabase.Rename(guid, "User"));
+            Assert.IsTrue(GameplayTagRegistry.Initialize(mDatabase));
             Assert.IsTrue(GameplayTagRegistry.TryGetTagByGuid(guid, out var renamed));
             Assert.AreEqual("Character.User", renamed.Path);
             Assert.IsFalse(GameplayTagRegistry.TryGetTag("Character.Player", out _));
@@ -183,15 +183,15 @@ namespace Fokiga.Tests
         [Test]
         public void ValidationReportsDuplicatePathsAndCycles()
         {
-            var duplicate = _database.AddRoot("Character");
-            var report = _database.Validate();
+            var duplicate = mDatabase.AddRoot("Character");
+            var report = mDatabase.Validate();
             Assert.IsFalse(report.IsValid);
             Assert.That(report.Errors, Has.Some.Contains("重复的标签路径"));
 
-            var first = _database.AddRoot("CycleA");
-            var second = _database.AddChild("CycleB", first.Guid);
-            _database.Reparent(first.Guid, second.Guid);
-            report = _database.Validate();
+            var first = mDatabase.AddRoot("CycleA");
+            var second = mDatabase.AddChild("CycleB", first.Guid);
+            mDatabase.Reparent(first.Guid, second.Guid);
+            report = mDatabase.Validate();
             Assert.IsFalse(report.IsValid);
             Assert.That(report.Errors, Has.Some.Contains("循环关系"));
             Assert.IsNotNull(duplicate);

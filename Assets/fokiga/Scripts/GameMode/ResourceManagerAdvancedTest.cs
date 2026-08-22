@@ -13,7 +13,7 @@ namespace Fokiga.Runtime.Gameplay
         public string testAddressablesPath = "Assets/Resources/Character/unitychan.prefab";
         public int preloadCount = 3;
 
-        private List<GameObject> _testInstances = new List<GameObject>();
+        private List<GameObject> mTestInstances = new List<GameObject>();
 
         private async void Start()
         {
@@ -46,7 +46,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance1 = Instantiate(prefab1);
                 instance1.name = "ResourcesTestInstance";
                 instance1.transform.position = new Vector3(-6, 0, 0);
-                _testInstances.Add(instance1);
+                mTestInstances.Add(instance1);
                 Debug.Log("Resources 策略加载成功");
             }
 
@@ -58,7 +58,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance2 = Instantiate(prefab2);
                 instance2.name = "AssetBundleTestInstance";
                 instance2.transform.position = new Vector3(-3, 0, 0);
-                _testInstances.Add(instance2);
+                mTestInstances.Add(instance2);
                 Debug.Log("AssetBundle 策略加载成功");
             }
             else
@@ -74,7 +74,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance3 = Instantiate(prefab3);
                 instance3.name = "AssetBundleTestInstance2";
                 instance3.transform.position = new Vector3(0, 0, 0);
-                _testInstances.Add(instance3);
+                mTestInstances.Add(instance3);
                 Debug.Log("AssetBundle 策略加载成功");
             }
             else
@@ -90,7 +90,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance4 = Instantiate(prefab4);
                 instance4.name = "AutoTestInstance";
                 instance4.transform.position = new Vector3(3, 0, 0);
-                _testInstances.Add(instance4);
+                mTestInstances.Add(instance4);
                 Debug.Log("Auto 策略加载成功");
             }
 
@@ -117,7 +117,7 @@ namespace Fokiga.Runtime.Gameplay
                     instance.name = $"PoolTestInstance_{i}";
                     instance.transform.position = new Vector3(6 + i, 0, 0);
                     instance.SetActive(true);
-                    _testInstances.Add(instance);
+                    mTestInstances.Add(instance);
                     Debug.Log($"从模板池获取实例: {instance.name}");
                 }
             }
@@ -130,7 +130,7 @@ namespace Fokiga.Runtime.Gameplay
             Debug.Log("\n=== 测试资源归还 ===");
 
             // 归还模板实例
-            foreach (var instance in _testInstances)
+            foreach (var instance in mTestInstances)
             {
                 if (instance != null)
                 {
@@ -139,7 +139,7 @@ namespace Fokiga.Runtime.Gameplay
                 }
             }
 
-            _testInstances.Clear();
+            mTestInstances.Clear();
 
             // 检查资源数量
             Debug.Log($"当前加载的资源数量: {ResourceManager.Instance.GetResourceCount()}");
@@ -159,14 +159,14 @@ namespace Fokiga.Runtime.Gameplay
         private void OnDestroy()
         {
             // 清理测试实例
-            foreach (var instance in _testInstances)
+            foreach (var instance in mTestInstances)
             {
                 if (instance != null)
                 {
                     Destroy(instance);
                 }
             }
-            _testInstances.Clear();
+            mTestInstances.Clear();
         }
     }
 }

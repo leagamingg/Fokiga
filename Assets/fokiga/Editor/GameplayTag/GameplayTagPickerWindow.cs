@@ -10,12 +10,12 @@ namespace Fokiga.Editor
 {
     internal sealed class GameplayTagPickerWindow : EditorWindow
     {
-        private GameplayTagDatabase _database;
-        private string _selectedGuid;
-        private string _search = string.Empty;
-        private Vector2 _scroll;
-        private Action<string> _onSelected;
-        private readonly HashSet<string> _expanded = new HashSet<string>(StringComparer.Ordinal);
+        private GameplayTagDatabase mDatabase;
+        private string mSelectedGuid;
+        private string mSearch = string.Empty;
+        private Vector2 mScroll;
+        private Action<string> mOnSelected;
+        private readonly HashSet<string> mExpanded = new HashSet<string>(StringComparer.Ordinal);
 
         public static void Show(
         GameplayTagDatabase database,
@@ -28,14 +28,14 @@ namespace Fokiga.Editor
             }
 
             var window = CreateInstance<GameplayTagPickerWindow>();
-            window._database = database;
-            window._selectedGuid = selectedGuid ?? string.Empty;
-            window._onSelected = onSelected;
+            window.mDatabase = database;
+            window.mSelectedGuid = selectedGuid ?? string.Empty;
+            window.mOnSelected = onSelected;
             window.titleContent = new GUIContent("选择 GameplayTag");
             window.minSize = new Vector2(420f, 360f);
             foreach (var root in database.Nodes.Where(node => node != null && string.IsNullOrEmpty(node.ParentGuid)))
             {
-                window._expanded.Add(root.Guid);
+                window.mExpanded.Add(root.Guid);
             }
 
             window.ShowUtility();
@@ -45,13 +45,13 @@ namespace Fokiga.Editor
         {
             DrawToolbar();
 
-            if (_database == null)
+            if (mDatabase == null)
             {
                 EditorGUILayout.HelpBox("GameplayTag 数据库不可用。", MessageType.Error);
                 return;
             }
 
-            var report = _database.Validate();
+            var report = mDatabase.Validate();
             if (!report.IsValid)
             {
                 EditorGUILayout.HelpBox(
@@ -60,9 +60,9 @@ namespace Fokiga.Editor
             }
 
             EditorGUILayout.LabelField("选择一个标签", EditorStyles.boldLabel);
-            _scroll = EditorGUILayout.BeginScrollView(_scroll);
-            var children = GameplayTagEditorUtility.BuildChildrenMap(_database);
-            if (string.IsNullOrWhiteSpace(_search))
+            mScroll = EditorGUILayout.BeginScrollView(mScroll);
+            var children = GameplayTagEditorUtility.BuildChildrenMap(mDatabase);
+            if (string.IsNullOrWhiteSpace(mSearch))
             {
                 if (children.TryGetValue(string.Empty, out var roots))
                 {
@@ -74,12 +74,12 @@ namespace Fokiga.Editor
             }
             else
             {
-                foreach (var node in _database.Nodes
+                foreach (var node in mDatabase.Nodes
                 .Where(node => node != null)
-                .OrderBy(node => GameplayTagEditorUtility.GetPath(_database, node), StringComparer.Ordinal))
+                .OrderBy(node => GameplayTagEditorUtility.GetPath(mDatabase, node), StringComparer.Ordinal))
                 {
-                    var path = GameplayTagEditorUtility.GetPath(_database, node);
-                    if (path.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0)
+                    var path = GameplayTagEditorUtility.GetPath(mDatabase, node);
+                    if (path.IndexOf(mSearch, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         DrawNodeRow(node, path, 0, false);
                     }
@@ -94,11 +94,11 @@ namespace Fokiga.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 var style = GUI.skin.FindStyle("ToolbarSearchTextField") ?? EditorStyles.toolbarTextField;
-                _search = GUILayout.TextField(_search, style);
+                mSearch = GUILayout.TextField(mSearch, style);
                 EditorGUILayout.LabelField("搜索", EditorStyles.miniLabel, GUILayout.Width(32f));
                 if (GUILayout.Button("清空", EditorStyles.toolbarButton, GUILayout.Width(48f)))
                 {
-                    _search = string.Empty;
+                    mSearch = string.Empty;
                     GUI.FocusControl(null);
                 }
             }
@@ -110,9 +110,9 @@ namespace Fokiga.Editor
         IReadOnlyDictionary<string, List<GameplayTagNodeData>> children)
         {
             var hasChildren = children.TryGetValue(node.Guid, out var childNodes) && childNodes.Count > 0;
-            DrawNodeRow(node, GameplayTagEditorUtility.GetPath(_database, node), depth, hasChildren);
+            DrawNodeRow(node, GameplayTagEditorUtility.GetPath(mDatabase, node), depth, hasChildren);
 
-            if (!hasChildren || !_expanded.Contains(node.Guid))
+            if (!hasChildren || !mExpanded.Contains(node.Guid))
             {
                 return;
             }
@@ -127,8 +127,8 @@ namespace Fokiga.Editor
         {
             var rowHeight = EditorGUIUtility.singleLineHeight + 3f;
             var rowRect = GUILayoutUtility.GetRect(0f, rowHeight, GUILayout.ExpandWidth(true));
-            var selected = node.Guid == _selectedGuid;
-            var expanded = _expanded.Contains(node.Guid);
+            var selected = node.Guid == mSelectedGuid;
+            var expanded = mExpanded.Contains(node.Guid);
             var indentWidth = depth * 16f;
             var arrowRect = new Rect(rowRect.x + indentWidth, rowRect.y, 18f, rowRect.height);
             var iconRect = new Rect(arrowRect.xMax + 2f, rowRect.y + 2f, 16f, 16f);
@@ -159,11 +159,11 @@ namespace Fokiga.Editor
                 {
                     if (nextExpanded)
                     {
-                        _expanded.Add(node.Guid);
+                        mExpanded.Add(node.Guid);
                     }
                     else
                     {
-                        _expanded.Remove(node.Guid);
+                        mExpanded.Remove(node.Guid);
                     }
 
                     Repaint();
@@ -193,8 +193,8 @@ namespace Fokiga.Editor
             {
                 if (!hasChildren || !arrowRect.Contains(currentEvent.mousePosition))
                 {
-                    _selectedGuid = node.Guid;
-                    _onSelected(node.Guid);
+                    mSelectedGuid = node.Guid;
+                    mOnSelected(node.Guid);
                     currentEvent.Use();
                     Close();
                     GUIUtility.ExitGUI();

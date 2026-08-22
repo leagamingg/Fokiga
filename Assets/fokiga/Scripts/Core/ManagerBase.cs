@@ -34,10 +34,10 @@ namespace Fokiga.Runtime.Core
         public static ManagerBase Instance { get; private set; }
 
         // 线程安全锁
-        private readonly object _actorLock = new object();
+        private readonly object mActorLock = new object();
 
         // 存储所有Actor，以唯一标识ID为键
-        private readonly Dictionary<string, ActorBase> _managedActors = new Dictionary<string, ActorBase>();
+        private readonly Dictionary<string, ActorBase> mManagedActors = new Dictionary<string, ActorBase>();
 
         /// <summary>
         /// 确保单例唯一性
@@ -130,9 +130,9 @@ namespace Fokiga.Runtime.Core
             }
 
             var id = string.IsNullOrEmpty(actorId) ? GenerateUniqueId() : actorId;
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                if (_managedActors.ContainsKey(id))
+                if (mManagedActors.ContainsKey(id))
                 {
                     Debug.LogError($"创建Actor失败：ID {id} 已存在");
                     return null;
@@ -142,9 +142,9 @@ namespace Fokiga.Runtime.Core
             var actor = new TActor();
             actor.CreateFromPrefab(prefab, parent);
 
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                _managedActors[id] = actor;
+                mManagedActors[id] = actor;
             }
 
             // 如果Manager已完成初始化，立即触发Actor的Awake
@@ -170,9 +170,9 @@ namespace Fokiga.Runtime.Core
             }
 
             var id = string.IsNullOrEmpty(actorId) ? GenerateUniqueId() : actorId;
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                if (_managedActors.ContainsKey(id))
+                if (mManagedActors.ContainsKey(id))
                 {
                     Debug.LogError($"创建Actor失败：ID {id} 已存在");
                     return null;
@@ -182,9 +182,9 @@ namespace Fokiga.Runtime.Core
             var actor = new TActor();
             actor.AttachToExistingObject(existingObject);
 
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                _managedActors[id] = actor;
+                mManagedActors[id] = actor;
             }
 
             // 如果Manager已完成初始化，立即触发Actor的Awake
@@ -204,9 +204,9 @@ namespace Fokiga.Runtime.Core
         {
             if (string.IsNullOrEmpty(actorId)) return null;
 
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                if (_managedActors.TryGetValue(actorId, out var actor))
+                if (mManagedActors.TryGetValue(actorId, out var actor))
                 {
                     return actor as TActor;
                 }
@@ -220,9 +220,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual List<TActor> GetActorsOfType<TActor>() where TActor : ActorBase
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                return _managedActors.Values
+                return mManagedActors.Values
                 .OfType<TActor>()
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
@@ -236,12 +236,12 @@ namespace Fokiga.Runtime.Core
         {
             if (string.IsNullOrEmpty(actorId)) return false;
 
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                if (_managedActors.TryGetValue(actorId, out var actor))
+                if (mManagedActors.TryGetValue(actorId, out var actor))
                 {
                     actor.OnDestroy(); // 触发Actor的销毁逻辑
-                    _managedActors.Remove(actorId);
+                    mManagedActors.Remove(actorId);
                     Debug.Log($"移除Actor成功：ID={actorId}");
                     return true;
                 }
@@ -256,17 +256,17 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual void ClearAllActors()
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var actorIds = _managedActors.Keys.ToList();
+                var actorIds = mManagedActors.Keys.ToList();
                 foreach (var id in actorIds)
                 {
-                    if (_managedActors.TryGetValue(id, out var actor))
+                    if (mManagedActors.TryGetValue(id, out var actor))
                     {
                         actor.OnDestroy(); // 触发Actor的销毁逻辑
                     }
                 }
-                _managedActors.Clear();
+                mManagedActors.Clear();
             }
 
             Debug.Log("所有Actor已清除");
@@ -292,9 +292,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private void InvokeActorAwake()
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var currentActors = _managedActors.Values
+                var currentActors = mManagedActors.Values
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
 
@@ -310,9 +310,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private void InvokeActorStart()
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var currentActors = _managedActors.Values
+                var currentActors = mManagedActors.Values
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
 
@@ -328,9 +328,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private void InvokeActorUpdate(float deltaTime)
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var currentActors = _managedActors.Values
+                var currentActors = mManagedActors.Values
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
 
@@ -346,9 +346,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private void InvokeActorFixedUpdate(float fixedDeltaTime)
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var currentActors = _managedActors.Values
+                var currentActors = mManagedActors.Values
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
 
@@ -364,9 +364,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private void InvokeActorLateUpdate(float deltaTime)
         {
-            lock (_actorLock)
+            lock (mActorLock)
             {
-                var currentActors = _managedActors.Values
+                var currentActors = mManagedActors.Values
                 .Where(actor => !actor.IsDestroyed)
                 .ToList();
 

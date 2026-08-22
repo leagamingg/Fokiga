@@ -8,43 +8,46 @@ namespace Fokiga.Runtime.Gameplay
     [Serializable]
     public sealed class GameplayTagNodeData
     {
-        [SerializeField] private string _guid;
-        [SerializeField] private string _name;
-        [SerializeField] private string _parentGuid;
+        [SerializeField]
+        private string mGuid;
+        [SerializeField]
+        private string mName;
+        [SerializeField]
+        private string mParentGuid;
 
-        public string Guid => _guid;
+        public string Guid => mGuid;
 
-        public string Name => _name;
+        public string Name => mName;
 
-        public string ParentGuid => _parentGuid;
+        public string ParentGuid => mParentGuid;
 
         public GameplayTagNodeData(string guid, string name, string parentGuid)
         {
-            _guid = guid;
-            _name = name;
-            _parentGuid = parentGuid ?? string.Empty;
+            mGuid = guid;
+            mName = name;
+            mParentGuid = parentGuid ?? string.Empty;
         }
 
         public GameplayTagNodeData()
         {
-            _guid = string.Empty;
-            _name = string.Empty;
-            _parentGuid = string.Empty;
+            mGuid = string.Empty;
+            mName = string.Empty;
+            mParentGuid = string.Empty;
         }
 
         public void SetName(string name)
         {
-            _name = name ?? string.Empty;
+            mName = name ?? string.Empty;
         }
 
         public void SetParentGuid(string parentGuid)
         {
-            _parentGuid = parentGuid ?? string.Empty;
+            mParentGuid = parentGuid ?? string.Empty;
         }
 
         public void SetGuid(string guid)
         {
-            _guid = guid ?? string.Empty;
+            mGuid = guid ?? string.Empty;
         }
     }
 
@@ -67,9 +70,10 @@ namespace Fokiga.Runtime.Gameplay
     [CreateAssetMenu(fileName = "GameplayTags", menuName = "Fokiga/Gameplay Tags/Database")]
     public sealed class GameplayTagDatabase : ScriptableObject
     {
-        [SerializeField] private List<GameplayTagNodeData> _nodes = new List<GameplayTagNodeData>();
+        [SerializeField]
+        private List<GameplayTagNodeData> mNodes = new List<GameplayTagNodeData>();
 
-        public IReadOnlyList<GameplayTagNodeData> Nodes => _nodes;
+        public IReadOnlyList<GameplayTagNodeData> Nodes => mNodes;
 
         public GameplayTagNodeData AddRoot(string name)
         {
@@ -83,7 +87,7 @@ namespace Fokiga.Runtime.Gameplay
 
         public bool TryGetNode(string guid, out GameplayTagNodeData node)
         {
-            node = _nodes.FirstOrDefault(item => item != null && item.Guid == guid);
+            node = mNodes.FirstOrDefault(item => item != null && item.Guid == guid);
             return node != null;
         }
 
@@ -121,7 +125,7 @@ namespace Fokiga.Runtime.Gameplay
             while (changed)
             {
                 changed = false;
-                foreach (var node in _nodes)
+                foreach (var node in mNodes)
                 {
                     if (node != null && !toRemove.Contains(node.Guid) && toRemove.Contains(node.ParentGuid))
                     {
@@ -131,7 +135,7 @@ namespace Fokiga.Runtime.Gameplay
                 }
             }
 
-            _nodes.RemoveAll(node => node == null || toRemove.Contains(node.Guid));
+            mNodes.RemoveAll(node => node == null || toRemove.Contains(node.Guid));
             return true;
         }
 
@@ -140,7 +144,7 @@ namespace Fokiga.Runtime.Gameplay
             var report = new GameplayTagValidationReport();
             var byGuid = new Dictionary<string, GameplayTagNodeData>(StringComparer.Ordinal);
 
-            foreach (var node in _nodes)
+            foreach (var node in mNodes)
             {
                 if (node == null)
                 {
@@ -177,7 +181,7 @@ namespace Fokiga.Runtime.Gameplay
             }
 
             var paths = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var node in _nodes)
+            foreach (var node in mNodes)
             {
                 if (node == null || string.IsNullOrEmpty(node.Guid))
                 {
@@ -213,7 +217,7 @@ namespace Fokiga.Runtime.Gameplay
                 return false;
             }
 
-            var byGuid = _nodes
+            var byGuid = mNodes
             .Where(item => item != null && !string.IsNullOrEmpty(item.Guid))
             .GroupBy(item => item.Guid, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
@@ -242,7 +246,7 @@ namespace Fokiga.Runtime.Gameplay
         private GameplayTagNodeData AddNode(string name, string parentGuid)
         {
             var node = new GameplayTagNodeData(System.Guid.NewGuid().ToString("N"), name, parentGuid);
-            _nodes.Add(node);
+            mNodes.Add(node);
             return node;
         }
 

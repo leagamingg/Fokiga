@@ -10,29 +10,29 @@ namespace Fokiga.Runtime.Core
     public class GlobalEventManager
     {
         // 单例实例
-        private static GlobalEventManager _instance;
-        private static readonly object _lock = new object();
+        private static GlobalEventManager mInstance;
+        private static readonly object mLock = new object();
 
         // 全局事件存储：事件名称 -> 监听器列表
-        private readonly Dictionary<string, List<Action<EventDefinition>>> _globalEvents =
+        private readonly Dictionary<string, List<Action<EventDefinition>>> mGlobalEvents =
         new Dictionary<string, List<Action<EventDefinition>>>();
 
         public static GlobalEventManager Instance
         {
             get
             {
-                if (_instance == null)
+                if (mInstance == null)
                 {
-                    lock (_lock)
+                    lock (mLock)
                     {
-                        if (_instance == null)
+                        if (mInstance == null)
                         {
-                            _instance = new GlobalEventManager();
-                            _instance.Initialize();
+                            mInstance = new GlobalEventManager();
+                            mInstance.Initialize();
                         }
                     }
                 }
-                return _instance;
+                return mInstance;
             }
         }
 
@@ -66,14 +66,14 @@ namespace Fokiga.Runtime.Core
 
             Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-            if (!_globalEvents.ContainsKey(eventName))
+            if (!mGlobalEvents.ContainsKey(eventName))
             {
-                _globalEvents[eventName] = new List<Action<EventDefinition>>();
+                mGlobalEvents[eventName] = new List<Action<EventDefinition>>();
             }
 
-            if (!_globalEvents[eventName].Contains(baseListener))
+            if (!mGlobalEvents[eventName].Contains(baseListener))
             {
-                _globalEvents[eventName].Add(baseListener);
+                mGlobalEvents[eventName].Add(baseListener);
             }
         }
 
@@ -87,13 +87,13 @@ namespace Fokiga.Runtime.Core
 
             Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-            if (_globalEvents.ContainsKey(eventName) && _globalEvents[eventName].Contains(baseListener))
+            if (mGlobalEvents.ContainsKey(eventName) && mGlobalEvents[eventName].Contains(baseListener))
             {
-                _globalEvents[eventName].Remove(baseListener);
+                mGlobalEvents[eventName].Remove(baseListener);
 
-                if (_globalEvents[eventName].Count == 0)
+                if (mGlobalEvents[eventName].Count == 0)
                 {
-                    _globalEvents.Remove(eventName);
+                    mGlobalEvents.Remove(eventName);
                 }
             }
         }
@@ -123,7 +123,7 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            if (_globalEvents.TryGetValue(eventName, out var listeners))
+            if (mGlobalEvents.TryGetValue(eventName, out var listeners))
             {
                 var listenersCopy = new List<Action<EventDefinition>>(listeners);
                 foreach (var listener in listenersCopy)

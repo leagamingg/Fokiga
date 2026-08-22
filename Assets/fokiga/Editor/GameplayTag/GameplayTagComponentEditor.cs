@@ -11,11 +11,11 @@ namespace Fokiga.Editor
     [CustomEditor(typeof(GameplayTagComponent))]
     public sealed class GameplayTagComponentEditor : UnityEditor.Editor
     {
-        private SerializedProperty _tagGuids;
+        private SerializedProperty mTagGuids;
 
         private void OnEnable()
         {
-            _tagGuids = serializedObject.FindProperty("_tagGuids");
+            mTagGuids = serializedObject.FindProperty("mTagGuids");
         }
 
         public override void OnInspectorGUI()
@@ -26,7 +26,7 @@ namespace Fokiga.Editor
             if (database == null)
             {
                 EditorGUILayout.HelpBox("请先创建 Assets/fokiga/Resources/GameplayTags.asset，再编辑 GameplayTag。", MessageType.Warning);
-                EditorGUILayout.PropertyField(_tagGuids, true);
+                EditorGUILayout.PropertyField(mTagGuids, true);
                 serializedObject.ApplyModifiedProperties();
                 return;
             }
@@ -39,11 +39,11 @@ namespace Fokiga.Editor
 
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                EditorGUILayout.LabelField($"GameplayTag 标签（{_tagGuids.arraySize}）", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"GameplayTag 标签（{mTagGuids.arraySize}）", EditorStyles.boldLabel);
             }
-            for (var index = 0; index < _tagGuids.arraySize; index++)
+            for (var index = 0; index < mTagGuids.arraySize; index++)
             {
-                var element = _tagGuids.GetArrayElementAtIndex(index);
+                var element = mTagGuids.GetArrayElementAtIndex(index);
                 var selectedIndex = nodes.FindIndex(node => node.Guid == element.stringValue);
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -63,7 +63,7 @@ namespace Fokiga.Editor
 
                     if (GUILayout.Button(new GUIContent("x", "移除标签"), GUILayout.Width(24f)))
                     {
-                        _tagGuids.DeleteArrayElementAtIndex(index);
+                        mTagGuids.DeleteArrayElementAtIndex(index);
                         break;
                     }
                 }
@@ -82,9 +82,9 @@ namespace Fokiga.Editor
             {
                 if (GUILayout.Button("添加标签"))
                 {
-                    _tagGuids.arraySize++;
-                    var newIndex = _tagGuids.arraySize - 1;
-                    _tagGuids.GetArrayElementAtIndex(newIndex).stringValue = string.Empty;
+                    mTagGuids.arraySize++;
+                    var newIndex = mTagGuids.arraySize - 1;
+                    mTagGuids.GetArrayElementAtIndex(newIndex).stringValue = string.Empty;
                     serializedObject.ApplyModifiedProperties();
                     OpenPicker(database, newIndex, string.Empty);
                     return;
@@ -109,12 +109,12 @@ namespace Fokiga.Editor
                 }
 
                 serializedObject.Update();
-                if (index < 0 || index >= _tagGuids.arraySize)
+                if (index < 0 || index >= mTagGuids.arraySize)
                 {
                     return;
                 }
 
-                _tagGuids.GetArrayElementAtIndex(index).stringValue = guid;
+                mTagGuids.GetArrayElementAtIndex(index).stringValue = guid;
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(target);
             });
@@ -123,12 +123,12 @@ namespace Fokiga.Editor
         private void RemoveEmptyAndDuplicateGuids()
         {
             var seen = new HashSet<string>(StringComparer.Ordinal);
-            for (var index = _tagGuids.arraySize - 1; index >= 0; index--)
+            for (var index = mTagGuids.arraySize - 1; index >= 0; index--)
             {
-                var value = _tagGuids.GetArrayElementAtIndex(index).stringValue;
+                var value = mTagGuids.GetArrayElementAtIndex(index).stringValue;
                 if (string.IsNullOrEmpty(value) || !seen.Add(value))
                 {
-                    _tagGuids.DeleteArrayElementAtIndex(index);
+                    mTagGuids.DeleteArrayElementAtIndex(index);
                 }
             }
         }

@@ -5,13 +5,13 @@ namespace Fokiga.Runtime.Gameplay
 {
     public sealed class GameplayTagContainer
     {
-        private ulong[] _explicitBits = Array.Empty<ulong>();
-        private int[] _ancestorCounts = Array.Empty<int>();
-        private int _registryVersion;
+        private ulong[] mExplicitBits = Array.Empty<ulong>();
+        private int[] mAncestorCounts = Array.Empty<int>();
+        private int mRegistryVersion;
 
         public int Count { get; private set; }
 
-        internal bool IsCurrent => _registryVersion == GameplayTagRegistry.Version && _ancestorCounts.Length == GameplayTagRegistry.Count;
+        internal bool IsCurrent => mRegistryVersion == GameplayTagRegistry.Version && mAncestorCounts.Length == GameplayTagRegistry.Count;
 
         public bool Add(GameplayTag tag)
         {
@@ -22,12 +22,12 @@ namespace Fokiga.Runtime.Gameplay
 
             EnsureRegistryState();
             var id = tag.Id.Value;
-            if (IsBitSet(_explicitBits, id))
+            if (IsBitSet(mExplicitBits, id))
             {
                 return false;
             }
 
-            SetBit(_explicitBits, id);
+            SetBit(mExplicitBits, id);
             Count++;
             IncrementAncestors(GameplayTagRegistry.GetAncestorBits(tag));
             return true;
@@ -47,12 +47,12 @@ namespace Fokiga.Runtime.Gameplay
 
             EnsureRegistryState();
             var id = tag.Id.Value;
-            if (!IsBitSet(_explicitBits, id))
+            if (!IsBitSet(mExplicitBits, id))
             {
                 return false;
             }
 
-            ClearBit(_explicitBits, id);
+            ClearBit(mExplicitBits, id);
             Count--;
             DecrementAncestors(GameplayTagRegistry.GetAncestorBits(tag));
             return true;
@@ -65,12 +65,12 @@ namespace Fokiga.Runtime.Gameplay
 
         public bool HasTagExact(GameplayTag tag)
         {
-            return GameplayTagRegistry.IsValid(tag) && _registryVersion == GameplayTagRegistry.Version && IsBitSet(_explicitBits, tag.Id.Value);
+            return GameplayTagRegistry.IsValid(tag) && mRegistryVersion == GameplayTagRegistry.Version && IsBitSet(mExplicitBits, tag.Id.Value);
         }
 
         public bool HasTag(GameplayTag tag)
         {
-            return GameplayTagRegistry.IsValid(tag) && _registryVersion == GameplayTagRegistry.Version && tag.Id.Value < _ancestorCounts.Length && _ancestorCounts[tag.Id.Value] > 0;
+            return GameplayTagRegistry.IsValid(tag) && mRegistryVersion == GameplayTagRegistry.Version && tag.Id.Value < mAncestorCounts.Length && mAncestorCounts[tag.Id.Value] > 0;
         }
 
         public bool HasAny(IReadOnlyList<GameplayTag> tags)
@@ -112,21 +112,21 @@ namespace Fokiga.Runtime.Gameplay
         public void Clear()
         {
             EnsureRegistryState();
-            Array.Clear(_explicitBits, 0, _explicitBits.Length);
-            Array.Clear(_ancestorCounts, 0, _ancestorCounts.Length);
+            Array.Clear(mExplicitBits, 0, mExplicitBits.Length);
+            Array.Clear(mAncestorCounts, 0, mAncestorCounts.Length);
             Count = 0;
         }
 
         private void EnsureRegistryState()
         {
-            if (_registryVersion == GameplayTagRegistry.Version && _ancestorCounts.Length == GameplayTagRegistry.Count)
+            if (mRegistryVersion == GameplayTagRegistry.Version && mAncestorCounts.Length == GameplayTagRegistry.Count)
             {
                 return;
             }
 
-            _registryVersion = GameplayTagRegistry.Version;
-            _explicitBits = new ulong[Math.Max(1, GameplayTagRegistry.WordCount)];
-            _ancestorCounts = new int[GameplayTagRegistry.Count];
+            mRegistryVersion = GameplayTagRegistry.Version;
+            mExplicitBits = new ulong[Math.Max(1, GameplayTagRegistry.WordCount)];
+            mAncestorCounts = new int[GameplayTagRegistry.Count];
             Count = 0;
         }
 
@@ -138,7 +138,7 @@ namespace Fokiga.Runtime.Gameplay
                 while (word != 0)
                 {
                     var bit = TrailingZeroCount(word);
-                    _ancestorCounts[wordIndex * 64 + bit]++;
+                    mAncestorCounts[wordIndex * 64 + bit]++;
                     word &= word - 1;
                 }
             }
@@ -152,7 +152,7 @@ namespace Fokiga.Runtime.Gameplay
                 while (word != 0)
                 {
                     var bit = TrailingZeroCount(word);
-                    _ancestorCounts[wordIndex * 64 + bit]--;
+                    mAncestorCounts[wordIndex * 64 + bit]--;
                     word &= word - 1;
                 }
             }

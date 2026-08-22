@@ -8,19 +8,20 @@ namespace Fokiga.Runtime.Gameplay
     [AddComponentMenu("Fokiga/GameplayTag/GameplayTag 组件")]
     public sealed class GameplayTagComponent : MonoBehaviour
     {
-        [SerializeField] private List<string> _tagGuids = new List<string>();
+        [SerializeField]
+        private List<string> mTagGuids = new List<string>();
 
-        private GameplayTagContainer _container;
-        private readonly HashSet<string> _reportedInvalidGuids = new HashSet<string>(StringComparer.Ordinal);
+        private GameplayTagContainer mContainer;
+        private readonly HashSet<string> mReportedInvalidGuids = new HashSet<string>(StringComparer.Ordinal);
 
-        public IReadOnlyList<string> SerializedTagGuids => _tagGuids;
+        public IReadOnlyList<string> SerializedTagGuids => mTagGuids;
 
         public GameplayTagContainer Container
         {
             get
             {
                 EnsureContainer();
-                return _container;
+                return mContainer;
             }
         }
 
@@ -37,14 +38,14 @@ namespace Fokiga.Runtime.Gameplay
         public bool AddTag(GameplayTag tag)
         {
             EnsureContainer();
-            if (!GameplayTagRegistry.IsValid(tag) || !_container.Add(tag))
+            if (!GameplayTagRegistry.IsValid(tag) || !mContainer.Add(tag))
             {
                 return false;
             }
 
-            if (!_tagGuids.Contains(tag.Guid))
+            if (!mTagGuids.Contains(tag.Guid))
             {
-                _tagGuids.Add(tag.Guid);
+                mTagGuids.Add(tag.Guid);
             }
 
             return true;
@@ -58,12 +59,12 @@ namespace Fokiga.Runtime.Gameplay
         public bool RemoveTag(GameplayTag tag)
         {
             EnsureContainer();
-            if (!GameplayTagRegistry.IsValid(tag) || !_container.Remove(tag))
+            if (!GameplayTagRegistry.IsValid(tag) || !mContainer.Remove(tag))
             {
                 return false;
             }
 
-            _tagGuids.Remove(tag.Guid);
+            mTagGuids.Remove(tag.Guid);
             return true;
         }
 
@@ -93,25 +94,25 @@ namespace Fokiga.Runtime.Gameplay
         public void ClearTags()
         {
             EnsureContainer();
-            _container.Clear();
-            _tagGuids.Clear();
+            mContainer.Clear();
+            mTagGuids.Clear();
         }
 
         internal void RebuildContainer()
         {
-            _container = new GameplayTagContainer();
+            mContainer = new GameplayTagContainer();
             if (!GameplayTagRegistry.IsInitialized)
             {
                 return;
             }
 
-            foreach (var guid in _tagGuids)
+            foreach (var guid in mTagGuids)
             {
                 if (GameplayTagRegistry.TryGetTagByGuid(guid, out var tag))
                 {
-                    _container.Add(tag);
+                    mContainer.Add(tag);
                 }
-                else if (!string.IsNullOrEmpty(guid) && _reportedInvalidGuids.Add(guid))
+                else if (!string.IsNullOrEmpty(guid) && mReportedInvalidGuids.Add(guid))
                 {
                     Debug.LogError($"GameplayTagComponent“{name}”引用了未知标签 GUID“{guid}”。", this);
                 }
@@ -120,7 +121,7 @@ namespace Fokiga.Runtime.Gameplay
 
         private void EnsureContainer()
         {
-            if (_container == null || (GameplayTagRegistry.IsInitialized && !_container.IsCurrent))
+            if (mContainer == null || (GameplayTagRegistry.IsInitialized && !mContainer.IsCurrent))
             {
                 RebuildContainer();
             }

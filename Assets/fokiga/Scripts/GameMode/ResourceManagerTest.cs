@@ -11,7 +11,7 @@ namespace Fokiga.Runtime.Gameplay
         public string testPrefabPath = "Character/unitychan";
         public int preloadCount = 3;
 
-        private List<GameObject> _testInstances = new List<GameObject>();
+        private List<GameObject> mTestInstances = new List<GameObject>();
 
         private async void Start()
         {
@@ -49,7 +49,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance = Instantiate(prefab);
                 instance.name = "SyncTestInstance";
                 instance.transform.position = new Vector3(-5, 0, 0);
-                _testInstances.Add(instance);
+                mTestInstances.Add(instance);
             }
             else
             {
@@ -76,7 +76,7 @@ namespace Fokiga.Runtime.Gameplay
                 var instance = Instantiate(prefab);
                 instance.name = "AsyncTestInstance";
                 instance.transform.position = new Vector3(0, 0, 0);
-                _testInstances.Add(instance);
+                mTestInstances.Add(instance);
             }
             else
             {
@@ -106,7 +106,7 @@ namespace Fokiga.Runtime.Gameplay
                     instance.name = $"PoolTestInstance_{i}";
                     instance.transform.position = new Vector3(5 + i, 0, 0);
                     instance.SetActive(true);
-                    _testInstances.Add(instance);
+                    mTestInstances.Add(instance);
                     Debug.Log($"从模板池获取实例: {instance.name}");
                 }
             }
@@ -119,7 +119,7 @@ namespace Fokiga.Runtime.Gameplay
             Debug.Log("\n=== 测试资源归还 ===");
 
             // 归还模板实例
-            foreach (var instance in _testInstances)
+            foreach (var instance in mTestInstances)
             {
                 if (instance != null)
                 {
@@ -128,7 +128,7 @@ namespace Fokiga.Runtime.Gameplay
                 }
             }
 
-            _testInstances.Clear();
+            mTestInstances.Clear();
 
             // 检查资源数量
             Debug.Log($"当前加载的资源数量: {ResourceManager.Instance.GetResourceCount()}");
@@ -148,14 +148,14 @@ namespace Fokiga.Runtime.Gameplay
         private void OnDestroy()
         {
             // 清理测试实例
-            foreach (var instance in _testInstances)
+            foreach (var instance in mTestInstances)
             {
                 if (instance != null)
                 {
                     Destroy(instance);
                 }
             }
-            _testInstances.Clear();
+            mTestInstances.Clear();
         }
     }
 }

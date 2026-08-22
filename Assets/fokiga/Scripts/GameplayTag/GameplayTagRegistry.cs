@@ -22,47 +22,47 @@ namespace Fokiga.Runtime.Gameplay
         }
 
         private static readonly object SyncRoot = new object();
-        private static Dictionary<string, GameplayTagId> _pathToId;
-        private static Dictionary<string, GameplayTagId> _guidToId;
-        private static RuntimeNode[] _nodes = Array.Empty<RuntimeNode>();
-        private static GameplayTag[] _tags = Array.Empty<GameplayTag>();
-        private static int _version;
-        private static int _wordCount;
-        private static GameplayTagDatabase _database;
-        private static bool _initialized;
-        private static bool _initializationSucceeded;
+        private static Dictionary<string, GameplayTagId> mPathToId;
+        private static Dictionary<string, GameplayTagId> mGuidToId;
+        private static RuntimeNode[] mNodes = Array.Empty<RuntimeNode>();
+        private static GameplayTag[] mTags = Array.Empty<GameplayTag>();
+        private static int mVersion;
+        private static int mWordCount;
+        private static GameplayTagDatabase mDatabase;
+        private static bool mInitialized;
+        private static bool mInitializationSucceeded;
 
-        public static bool IsInitialized => _initialized;
+        public static bool IsInitialized => mInitialized;
 
-        public static int Version => _version;
+        public static int Version => mVersion;
 
-        public static int Count => _nodes.Length;
+        public static int Count => mNodes.Length;
 
-        public static int WordCount => _wordCount;
+        public static int WordCount => mWordCount;
 
-        public static GameplayTagDatabase Database => _database;
+        public static GameplayTagDatabase Database => mDatabase;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
             lock (SyncRoot)
             {
-                _pathToId = null;
-                _guidToId = null;
-                _nodes = Array.Empty<RuntimeNode>();
-                _tags = Array.Empty<GameplayTag>();
-                _version = 0;
-                _wordCount = 0;
-                _database = null;
-                _initialized = false;
-                _initializationSucceeded = false;
+                mPathToId = null;
+                mGuidToId = null;
+                mNodes = Array.Empty<RuntimeNode>();
+                mTags = Array.Empty<GameplayTag>();
+                mVersion = 0;
+                mWordCount = 0;
+                mDatabase = null;
+                mInitialized = false;
+                mInitializationSucceeded = false;
             }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void AutoInitialize()
         {
-            if (_initialized)
+            if (mInitialized)
             {
                 return;
             }
@@ -82,26 +82,26 @@ namespace Fokiga.Runtime.Gameplay
         {
             lock (SyncRoot)
             {
-                if (_initialized && ReferenceEquals(_database, database) && Application.isPlaying)
+                if (mInitialized && ReferenceEquals(mDatabase, database) && Application.isPlaying)
                 {
-                    return _initializationSucceeded;
+                    return mInitializationSucceeded;
                 }
 
-                if (_initialized && Application.isPlaying)
+                if (mInitialized && Application.isPlaying)
                 {
                     Debug.LogError("GameplayTag 注册表在运行时初始化后不能重建。");
                     return false;
                 }
 
-                _database = database;
-                _version = Math.Max(1, _version + 1);
-                _pathToId = new Dictionary<string, GameplayTagId>(StringComparer.Ordinal);
-                _guidToId = new Dictionary<string, GameplayTagId>(StringComparer.Ordinal);
-                _nodes = Array.Empty<RuntimeNode>();
-                _tags = Array.Empty<GameplayTag>();
-                _wordCount = 0;
-                _initialized = true;
-                _initializationSucceeded = false;
+                mDatabase = database;
+                mVersion = Math.Max(1, mVersion + 1);
+                mPathToId = new Dictionary<string, GameplayTagId>(StringComparer.Ordinal);
+                mGuidToId = new Dictionary<string, GameplayTagId>(StringComparer.Ordinal);
+                mNodes = Array.Empty<RuntimeNode>();
+                mTags = Array.Empty<GameplayTag>();
+                mWordCount = 0;
+                mInitialized = true;
+                mInitializationSucceeded = false;
 
                 if (database == null)
                 {
@@ -120,7 +120,7 @@ namespace Fokiga.Runtime.Gameplay
                 }
 
                 Build(database);
-                _initializationSucceeded = true;
+                mInitializationSucceeded = true;
                 return true;
             }
         }
@@ -129,12 +129,12 @@ namespace Fokiga.Runtime.Gameplay
         {
             tag = GameplayTag.Invalid;
             EnsureInitialized();
-            if (string.IsNullOrEmpty(path) || _pathToId == null || !_pathToId.TryGetValue(path, out var id))
+            if (string.IsNullOrEmpty(path) || mPathToId == null || !mPathToId.TryGetValue(path, out var id))
             {
                 return false;
             }
 
-            tag = _tags[id.Value];
+            tag = mTags[id.Value];
             return true;
         }
 
@@ -142,18 +142,18 @@ namespace Fokiga.Runtime.Gameplay
         {
             tag = GameplayTag.Invalid;
             EnsureInitialized();
-            if (string.IsNullOrEmpty(guid) || _guidToId == null || !_guidToId.TryGetValue(guid, out var id))
+            if (string.IsNullOrEmpty(guid) || mGuidToId == null || !mGuidToId.TryGetValue(guid, out var id))
             {
                 return false;
             }
 
-            tag = _tags[id.Value];
+            tag = mTags[id.Value];
             return true;
         }
 
         public static bool IsValid(GameplayTag tag)
         {
-            return tag.IsValid && tag.RegistryVersion == _version && tag.Id.Value < _nodes.Length;
+            return tag.IsValid && tag.RegistryVersion == mVersion && tag.Id.Value < mNodes.Length;
         }
 
         public static bool IsChildOf(GameplayTag tag, GameplayTag ancestor, bool includeSelf = true)
@@ -168,7 +168,7 @@ namespace Fokiga.Runtime.Gameplay
                 return includeSelf;
             }
 
-            return IsBitSet(_nodes[tag.Id.Value].AncestorBits, ancestor.Id.Value);
+            return IsBitSet(mNodes[tag.Id.Value].AncestorBits, ancestor.Id.Value);
         }
 
         public static GameplayTag GetParent(GameplayTag tag)
@@ -178,8 +178,8 @@ namespace Fokiga.Runtime.Gameplay
                 return GameplayTag.Invalid;
             }
 
-            var parentId = _nodes[tag.Id.Value].ParentId;
-            return parentId >= 0 ? _tags[parentId] : GameplayTag.Invalid;
+            var parentId = mNodes[tag.Id.Value].ParentId;
+            return parentId >= 0 ? mTags[parentId] : GameplayTag.Invalid;
         }
 
         public static IReadOnlyList<GameplayTag> GetChildren(GameplayTag tag)
@@ -189,7 +189,7 @@ namespace Fokiga.Runtime.Gameplay
                 return Array.Empty<GameplayTag>();
             }
 
-            return _nodes[tag.Id.Value].ChildTags;
+            return mNodes[tag.Id.Value].ChildTags;
         }
 
         public static IReadOnlyList<GameplayTag> GetAncestors(GameplayTag tag)
@@ -199,7 +199,7 @@ namespace Fokiga.Runtime.Gameplay
                 return Array.Empty<GameplayTag>();
             }
 
-            return _nodes[tag.Id.Value].AncestorTags;
+            return mNodes[tag.Id.Value].AncestorTags;
         }
 
         public static IReadOnlyList<GameplayTag> GetDescendants(GameplayTag tag)
@@ -209,7 +209,7 @@ namespace Fokiga.Runtime.Gameplay
                 return Array.Empty<GameplayTag>();
             }
 
-            return _nodes[tag.Id.Value].DescendantTags;
+            return mNodes[tag.Id.Value].DescendantTags;
         }
 
         public static string GetPath(GameplayTag tag)
@@ -219,12 +219,12 @@ namespace Fokiga.Runtime.Gameplay
 
         internal static ulong[] GetAncestorBits(GameplayTag tag)
         {
-            return IsValid(tag) ? _nodes[tag.Id.Value].AncestorBits : Array.Empty<ulong>();
+            return IsValid(tag) ? mNodes[tag.Id.Value].AncestorBits : Array.Empty<ulong>();
         }
 
         internal static int GetRuntimeIdCount(GameplayTag tag)
         {
-            return IsValid(tag) ? _nodes.Length : 0;
+            return IsValid(tag) ? mNodes.Length : 0;
         }
 
         internal static int GetVersion(GameplayTag tag)
@@ -234,7 +234,7 @@ namespace Fokiga.Runtime.Gameplay
 
         private static void EnsureInitialized()
         {
-            if (!_initialized)
+            if (!mInitialized)
             {
                 AutoInitialize();
             }
@@ -254,9 +254,9 @@ namespace Fokiga.Runtime.Gameplay
             .ThenBy(node => node.Guid, StringComparer.Ordinal)
             .ToList();
 
-            _wordCount = Math.Max(1, (orderedNodes.Count + 63) / 64);
-            _nodes = new RuntimeNode[orderedNodes.Count];
-            _tags = new GameplayTag[orderedNodes.Count];
+            mWordCount = Math.Max(1, (orderedNodes.Count + 63) / 64);
+            mNodes = new RuntimeNode[orderedNodes.Count];
+            mTags = new GameplayTag[orderedNodes.Count];
             var parentGuids = new string[orderedNodes.Count];
 
             for (var index = 0; index < orderedNodes.Count; index++)
@@ -266,13 +266,13 @@ namespace Fokiga.Runtime.Gameplay
                 {
                     Guid = source.Guid,
                     Path = pathByGuid[source.Guid],
-                    AncestorBits = new ulong[_wordCount]
+                    AncestorBits = new ulong[mWordCount]
                 };
-                _nodes[index] = node;
-                _tags[index] = new GameplayTag(new GameplayTagId(index), _version, node.Path, node.Guid);
+                mNodes[index] = node;
+                mTags[index] = new GameplayTag(new GameplayTagId(index), mVersion, node.Path, node.Guid);
                 parentGuids[index] = source.ParentGuid;
-                _pathToId[node.Path] = new GameplayTagId(index);
-                _guidToId[node.Guid] = new GameplayTagId(index);
+                mPathToId[node.Path] = new GameplayTagId(index);
+                mGuidToId[node.Guid] = new GameplayTagId(index);
             }
 
             var children = Enumerable.Range(0, orderedNodes.Count)
@@ -281,39 +281,39 @@ namespace Fokiga.Runtime.Gameplay
 
             for (var index = 0; index < orderedNodes.Count; index++)
             {
-                if (!string.IsNullOrEmpty(parentGuids[index]) && _guidToId.TryGetValue(parentGuids[index], out var parentId))
+                if (!string.IsNullOrEmpty(parentGuids[index]) && mGuidToId.TryGetValue(parentGuids[index], out var parentId))
                 {
-                    _nodes[index].ParentId = parentId.Value;
+                    mNodes[index].ParentId = parentId.Value;
                     children[parentId.Value].Add(index);
                 }
             }
 
-            for (var index = 0; index < _nodes.Length; index++)
+            for (var index = 0; index < mNodes.Length; index++)
             {
-                _nodes[index].Children = children[index].ToArray();
+                mNodes[index].Children = children[index].ToArray();
                 var ancestors = new List<int>();
                 var current = index;
                 while (current >= 0)
                 {
                     ancestors.Add(current);
-                    SetBit(_nodes[index].AncestorBits, current);
-                    current = _nodes[current].ParentId;
+                    SetBit(mNodes[index].AncestorBits, current);
+                    current = mNodes[current].ParentId;
                 }
 
-                _nodes[index].Ancestors = ancestors.ToArray();
+                mNodes[index].Ancestors = ancestors.ToArray();
             }
 
-            for (var index = 0; index < _nodes.Length; index++)
+            for (var index = 0; index < mNodes.Length; index++)
             {
                 var descendants = new List<int>();
                 CollectDescendants(index, children, descendants);
-                _nodes[index].Descendants = descendants.ToArray();
-                _nodes[index].ChildTags = _nodes[index].Children.Select(id => _tags[id]).ToArray();
-                _nodes[index].AncestorTags = _nodes[index].Ancestors
+                mNodes[index].Descendants = descendants.ToArray();
+                mNodes[index].ChildTags = mNodes[index].Children.Select(id => mTags[id]).ToArray();
+                mNodes[index].AncestorTags = mNodes[index].Ancestors
                 .Where(id => id != index)
-                .Select(id => _tags[id])
+                .Select(id => mTags[id])
                 .ToArray();
-                _nodes[index].DescendantTags = _nodes[index].Descendants.Select(id => _tags[id]).ToArray();
+                mNodes[index].DescendantTags = mNodes[index].Descendants.Select(id => mTags[id]).ToArray();
             }
         }
 

@@ -108,21 +108,21 @@ namespace Fokiga.Runtime.Core
         // 计时器ID
         public int Id { get; private set; }
         // 总时长（秒）
-        private float _duration;
+        private float mDuration;
         // 已流逝时间（秒）
-        private float _elapsedTime;
+        private float mElapsedTime;
         // 是否循环
-        private bool _isLoop;
+        private bool mIsLoop;
         // 是否使用非缩放时间（不受Time.timeScale影响）
-        private bool _useUnscaledTime;
+        private bool mUseUnscaledTime;
         // 是否暂停
-        private bool _isPaused;
+        private bool mIsPaused;
         // 完成回调（存储弱引用，避免强引用导致实例无法销毁）
-        private WeakReference<Action> _onCompleteWeakRef;
+        private WeakReference<Action> mOnCompleteWeakRef;
         // 更新回调（弱引用）
-        private WeakReference<Action<float>> _onUpdateWeakRef;
+        private WeakReference<Action<float>> mOnUpdateWeakRef;
         // 时间源（根据useUnscaledTime动态获取）
-        private Func<float> _getTimeDelta;
+        private Func<float> mGetTimeDelta;
 
         public Timer()
         {
@@ -136,18 +136,18 @@ namespace Fokiga.Runtime.Core
         Action<float> onUpdate, bool useUnscaledTime)
         {
             Id = id;
-            _duration = duration;
-            _isLoop = isLoop;
-            _useUnscaledTime = useUnscaledTime;
-            _isPaused = false;
-            _elapsedTime = 0;
+            mDuration = duration;
+            mIsLoop = isLoop;
+            mUseUnscaledTime = useUnscaledTime;
+            mIsPaused = false;
+            mElapsedTime = 0;
 
             // 存储回调的弱引用（避免强引用实例）
-            _onCompleteWeakRef = onComplete != null ? new WeakReference<Action>(onComplete) : null;
-            _onUpdateWeakRef = onUpdate != null ? new WeakReference<Action<float>>(onUpdate) : null;
+            mOnCompleteWeakRef = onComplete != null ? new WeakReference<Action>(onComplete) : null;
+            mOnUpdateWeakRef = onUpdate != null ? new WeakReference<Action<float>>(onUpdate) : null;
 
             // 绑定时间源
-            _getTimeDelta = useUnscaledTime ? () => Time.unscaledDeltaTime : () => Time.deltaTime;
+            mGetTimeDelta = useUnscaledTime ? () => Time.unscaledDeltaTime : () => Time.deltaTime;
         }
 
         /// <summary>
@@ -156,31 +156,31 @@ namespace Fokiga.Runtime.Core
         /// <returns>是否需要被移除（非循环且已完成）</returns>
         public bool Update()
         {
-            if (_isPaused) return false;
+            if (mIsPaused) return false;
 
-            float deltaTime = _getTimeDelta();
-            _elapsedTime += deltaTime;
+            float deltaTime = mGetTimeDelta();
+            mElapsedTime += deltaTime;
 
             // 触发更新回调（检查弱引用是否有效）
-            if (_onUpdateWeakRef != null && _onUpdateWeakRef.TryGetTarget(out var onUpdate))
+            if (mOnUpdateWeakRef != null && mOnUpdateWeakRef.TryGetTarget(out var onUpdate))
             {
-                float progress = Mathf.Clamp01(_elapsedTime / _duration);
+                float progress = Mathf.Clamp01(mElapsedTime / mDuration);
                 onUpdate.Invoke(progress);
             }
 
             // 检查是否完成
-            if (_elapsedTime >= _duration)
+            if (mElapsedTime >= mDuration)
             {
                 // 触发完成回调（检查弱引用是否有效）
-                if (_onCompleteWeakRef != null && _onCompleteWeakRef.TryGetTarget(out var onComplete))
+                if (mOnCompleteWeakRef != null && mOnCompleteWeakRef.TryGetTarget(out var onComplete))
                 {
                     onComplete.Invoke();
                 }
 
-                if (_isLoop)
+                if (mIsLoop)
                 {
                     // 循环模式：重置已流逝时间（支持超出部分累计，如duration=2，实际过了3秒，下次剩余1秒）
-                    _elapsedTime -= _duration;
+                    mElapsedTime -= mDuration;
                     return false;
                 }
                 else
@@ -194,61 +194,61 @@ namespace Fokiga.Runtime.Core
         }
 
         // 暂停
-        public void Pause() => _isPaused = true;
+        public void Pause() => mIsPaused = true;
 
         // 恢复
-        public void Resume() => _isPaused = false;
+        public void Resume() => mIsPaused = false;
 
         // 重置计时
-        public void Reset() => _elapsedTime = 0;
+        public void Reset() => mElapsedTime = 0;
 
         // 修改时长
-        public void ChangeDuration(float newDuration) => _duration = newDuration;
+        public void ChangeDuration(float newDuration) => mDuration = newDuration;
 
         // 获取剩余时间
-        public float GetRemainingTime() => Mathf.Max(0, _duration - _elapsedTime);
+        public float GetRemainingTime() => Mathf.Max(0, mDuration - mElapsedTime);
 
         // 获取已流逝时间
-        public float GetElapsedTime() => _elapsedTime;
+        public float GetElapsedTime() => mElapsedTime;
 
         /// <summary>
         /// 重置为初始状态（对象池回收时调用）
         /// </summary>
         public void ResetForPool()
         {
-            _onCompleteWeakRef = null;
-            _onUpdateWeakRef = null;
-            _getTimeDelta = null;
-            _elapsedTime = 0;
-            _isPaused = false;
+            mOnCompleteWeakRef = null;
+            mOnUpdateWeakRef = null;
+            mGetTimeDelta = null;
+            mElapsedTime = 0;
+            mIsPaused = false;
         }
     }
     public class TimerManager : MonoBehaviour
     {
         // 单例实例
-        private static TimerManager _instance;
+        private static TimerManager mInstance;
         public static TimerManager Instance
         {
             get
             {
-                if (_instance == null)
+                if (mInstance == null)
                 {
                     GameObject obj = new GameObject("TimerManager");
-                    _instance = obj.AddComponent<TimerManager>();
+                    mInstance = obj.AddComponent<TimerManager>();
                     DontDestroyOnLoad(obj);
                 }
-                return _instance;
+                return mInstance;
             }
         }
 
         // 活跃计时器列表
-        private List<Timer> _activeTimers = new List<Timer>();
+        private List<Timer> mActiveTimers = new List<Timer>();
         // 待移除计时器
-        private HashSet<int> _timersToRemove = new HashSet<int>();
+        private HashSet<int> mTimersToRemove = new HashSet<int>();
         // 下一个计时器ID
-        private int _nextTimerId = 1;
+        private int mNextTimerId = 1;
         // Timer对象池（减少GC）
-        private ObjectPool<Timer> _timerPool = new ObjectPool<Timer>(
+        private ObjectPool<Timer> mTimerPool = new ObjectPool<Timer>(
         createFunc: () => new Timer(),
         actionOnGet: (timer) => { },
         actionOnRelease: (timer) => timer.ResetForPool(),
@@ -258,25 +258,25 @@ namespace Fokiga.Runtime.Core
         private void Update()
         {
             // 清理待移除计时器
-            if (_timersToRemove.Count > 0)
+            if (mTimersToRemove.Count > 0)
             {
-                for (int i = _activeTimers.Count - 1; i >= 0; i--)
+                for (int i = mActiveTimers.Count - 1; i >= 0; i--)
                 {
-                    if (_timersToRemove.Contains(_activeTimers[i].Id))
+                    if (mTimersToRemove.Contains(mActiveTimers[i].Id))
                     {
-                        _timerPool.Release(_activeTimers[i]); // 回收至对象池
-                        _activeTimers.RemoveAt(i);
+                        mTimerPool.Release(mActiveTimers[i]); // 回收至对象池
+                        mActiveTimers.RemoveAt(i);
                     }
                 }
-                _timersToRemove.Clear();
+                mTimersToRemove.Clear();
             }
 
             // 更新所有活跃计时器
-            for (int i = 0; i < _activeTimers.Count; i++)
+            for (int i = 0; i < mActiveTimers.Count; i++)
             {
-                if (_activeTimers[i].Update())
+                if (mActiveTimers[i].Update())
                 {
-                    _timersToRemove.Add(_activeTimers[i].Id);
+                    mTimersToRemove.Add(mActiveTimers[i].Id);
                 }
             }
         }
@@ -293,10 +293,10 @@ namespace Fokiga.Runtime.Core
                 return default;
             }
 
-            int timerId = _nextTimerId++;
-            Timer timer = _timerPool.Get(); // 从对象池获取
+            int timerId = mNextTimerId++;
+            Timer timer = mTimerPool.Get(); // 从对象池获取
             timer.Init(timerId, duration, isLoop, onComplete, onUpdate, useUnscaledTime);
-            _activeTimers.Add(timer);
+            mActiveTimers.Add(timer);
 
             return new TimerHandle(timerId, this);
         }
@@ -307,7 +307,7 @@ namespace Fokiga.Runtime.Core
         internal void RemoveTimer(TimerHandle handle)
         {
             if (handle.Manager != this) return;
-            _timersToRemove.Add(handle.Id);
+            mTimersToRemove.Add(handle.Id);
         }
 
         /// <summary>
@@ -361,7 +361,7 @@ namespace Fokiga.Runtime.Core
         internal bool HasTimer(TimerHandle handle)
         {
             if (handle.Manager != this) return false;
-            return GetTimer(handle.Id) != null && !_timersToRemove.Contains(handle.Id);
+            return GetTimer(handle.Id) != null && !mTimersToRemove.Contains(handle.Id);
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void PauseAllTimers()
         {
-            foreach (var timer in _activeTimers)
+            foreach (var timer in mActiveTimers)
             {
                 timer.Pause();
             }
@@ -380,7 +380,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void ResumeAllTimers()
         {
-            foreach (var timer in _activeTimers)
+            foreach (var timer in mActiveTimers)
             {
                 timer.Resume();
             }
@@ -391,12 +391,12 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void ClearAllTimers()
         {
-            foreach (var timer in _activeTimers)
+            foreach (var timer in mActiveTimers)
             {
-                _timerPool.Release(timer);
+                mTimerPool.Release(timer);
             }
-            _activeTimers.Clear();
-            _timersToRemove.Clear();
+            mActiveTimers.Clear();
+            mTimersToRemove.Clear();
         }
 
         /// <summary>
@@ -404,11 +404,11 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private Timer GetTimer(int timerId)
         {
-            for (int i = 0; i < _activeTimers.Count; i++)
+            for (int i = 0; i < mActiveTimers.Count; i++)
             {
-                if (_activeTimers[i].Id == timerId)
+                if (mActiveTimers[i].Id == timerId)
                 {
-                    return _activeTimers[i];
+                    return mActiveTimers[i];
                 }
             }
             return null;
@@ -417,35 +417,35 @@ namespace Fokiga.Runtime.Core
         // 对象池辅助类（简化版）
         private class ObjectPool<T> where T : new()
         {
-            private readonly Stack<T> _pool = new Stack<T>();
-            private readonly Func<T> _createFunc;
-            private readonly Action<T> _actionOnGet;
-            private readonly Action<T> _actionOnRelease;
+            private readonly Stack<T> mPool = new Stack<T>();
+            private readonly Func<T> mCreateFunc;
+            private readonly Action<T> mActionOnGet;
+            private readonly Action<T> mActionOnRelease;
 
             public ObjectPool(Func<T> createFunc, Action<T> actionOnGet, Action<T> actionOnRelease, int defaultCapacity)
             {
-                _createFunc = createFunc ?? (() => new T());
-                _actionOnGet = actionOnGet;
-                _actionOnRelease = actionOnRelease;
+                mCreateFunc = createFunc ?? (() => new T());
+                mActionOnGet = actionOnGet;
+                mActionOnRelease = actionOnRelease;
 
                 // 预创建默认数量的对象
                 for (int i = 0; i < defaultCapacity; i++)
                 {
-                    _pool.Push(_createFunc());
+                    mPool.Push(mCreateFunc());
                 }
             }
 
             public T Get()
             {
-                T item = _pool.Count > 0 ? _pool.Pop() : _createFunc();
-                _actionOnGet?.Invoke(item);
+                T item = mPool.Count > 0 ? mPool.Pop() : mCreateFunc();
+                mActionOnGet?.Invoke(item);
                 return item;
             }
 
             public void Release(T item)
             {
-                _actionOnRelease?.Invoke(item);
-                _pool.Push(item);
+                mActionOnRelease?.Invoke(item);
+                mPool.Push(item);
             }
         }
     }

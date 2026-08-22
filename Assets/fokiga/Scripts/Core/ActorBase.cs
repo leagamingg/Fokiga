@@ -45,10 +45,10 @@ namespace Fokiga.Runtime.Core
     public class LocalEventManager
     {
         // 保持原有实现不变...
-        private readonly object _eventLock = new object();
-        private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> _instanceEvents = new();
-        private readonly Dictionary<string, List<Action<EventDefinition>>> _globalEvents = new();
-        private readonly Dictionary<(Type, object, Delegate), Action<EventDefinition>> _listenerMap = new();
+        private readonly object mEventLock = new object();
+        private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> mInstanceEvents = new();
+        private readonly Dictionary<string, List<Action<EventDefinition>>> mGlobalEvents = new();
+        private readonly Dictionary<(Type, object, Delegate), Action<EventDefinition>> mListenerMap = new();
 
         public void AddListener<TEvt>(object instance, Action<TEvt> listener) where TEvt : EventDefinition, new()
         {
@@ -58,28 +58,28 @@ namespace Fokiga.Runtime.Core
             var eventName = evt.EventName;
             var key = (typeof(TEvt), instance, listener);
 
-            lock (_eventLock)
+            lock (mEventLock)
             {
-                if (!_listenerMap.ContainsKey(key))
+                if (!mListenerMap.ContainsKey(key))
                 {
                     Action<EventDefinition> baseListener = args => listener((TEvt)args);
-                    _listenerMap[key] = baseListener;
+                    mListenerMap[key] = baseListener;
 
                     if (evt.Scope == EventScope.Global)
                     {
-                        if (!_globalEvents.ContainsKey(eventName))
+                        if (!mGlobalEvents.ContainsKey(eventName))
                         {
-                            _globalEvents[eventName] = new List<Action<EventDefinition>>();
+                            mGlobalEvents[eventName] = new List<Action<EventDefinition>>();
                         }
-                        _globalEvents[eventName].Add(baseListener);
+                        mGlobalEvents[eventName].Add(baseListener);
                     }
                     else
                     {
-                        if (!_instanceEvents.ContainsKey(instance))
+                        if (!mInstanceEvents.ContainsKey(instance))
                         {
-                            _instanceEvents[instance] = new Dictionary<string, List<Action<EventDefinition>>>();
+                            mInstanceEvents[instance] = new Dictionary<string, List<Action<EventDefinition>>>();
                         }
-                        var instanceDict = _instanceEvents[instance];
+                        var instanceDict = mInstanceEvents[instance];
                         if (!instanceDict.ContainsKey(eventName))
                         {
                             instanceDict[eventName] = new List<Action<EventDefinition>>();
@@ -98,26 +98,26 @@ namespace Fokiga.Runtime.Core
             var eventName = evt.EventName;
             var key = (typeof(TEvt), instance, listener);
 
-            lock (_eventLock)
+            lock (mEventLock)
             {
-                if (_listenerMap.TryGetValue(key, out var baseListener))
+                if (mListenerMap.TryGetValue(key, out var baseListener))
                 {
                     if (evt.Scope == EventScope.Global)
                     {
-                        if (_globalEvents.TryGetValue(eventName, out var globalListeners))
+                        if (mGlobalEvents.TryGetValue(eventName, out var globalListeners))
                         {
                             globalListeners.Remove(baseListener);
                         }
                     }
                     else
                     {
-                        if (_instanceEvents.TryGetValue(instance, out var instanceDict) &&
+                        if (mInstanceEvents.TryGetValue(instance, out var instanceDict) &&
                         instanceDict.TryGetValue(eventName, out var instanceListeners))
                         {
                             instanceListeners.Remove(baseListener);
                         }
                     }
-                    _listenerMap.Remove(key);
+                    mListenerMap.Remove(key);
                 }
             }
         }
@@ -129,18 +129,18 @@ namespace Fokiga.Runtime.Core
             var eventName = eventData.EventName;
             var listenersCopy = new List<Action<EventDefinition>>();
 
-            lock (_eventLock)
+            lock (mEventLock)
             {
                 if (eventData.Scope == EventScope.Global)
                 {
-                    if (_globalEvents.TryGetValue(eventName, out var globalListeners))
+                    if (mGlobalEvents.TryGetValue(eventName, out var globalListeners))
                     {
                         listenersCopy.AddRange(globalListeners);
                     }
                 }
                 else
                 {
-                    foreach (var instanceDict in _instanceEvents.Values)
+                    foreach (var instanceDict in mInstanceEvents.Values)
                     {
                         if (instanceDict.TryGetValue(eventName, out var instanceListeners))
                         {
@@ -167,19 +167,19 @@ namespace Fokiga.Runtime.Core
         {
             if (instance == null) return;
 
-            lock (_eventLock)
+            lock (mEventLock)
             {
-                if (_instanceEvents.TryGetValue(instance, out var instanceDict))
+                if (mInstanceEvents.TryGetValue(instance, out var instanceDict))
                 {
-                    var keysToRemove = _listenerMap.Where(kv => kv.Key.Item2 == instance).Select(kv => kv.Key).ToList();
+                    var keysToRemove = mListenerMap.Where(kv => kv.Key.Item2 == instance).Select(kv => kv.Key).ToList();
                     foreach (var key in keysToRemove)
                     {
-                        _listenerMap.Remove(key);
+                        mListenerMap.Remove(key);
                     }
-                    _instanceEvents.Remove(instance);
+                    mInstanceEvents.Remove(instance);
                 }
 
-                foreach (var eventListeners in _globalEvents.Values)
+                foreach (var eventListeners in mGlobalEvents.Values)
                 {
                     var listenersToRemove = eventListeners.Where(l => l.Target == instance).ToList();
                     foreach (var listener in listenersToRemove)
@@ -196,28 +196,28 @@ namespace Fokiga.Runtime.Core
     /// </summary>
     public class ActorBase : IActor
     {
-        protected GameObject _realObject;
-        public GameObject RealObject => _realObject;
+        protected GameObject mRealObject;
+        public GameObject RealObject => mRealObject;
 
-        private readonly ComponentCollection _components = new ComponentCollection();
-        private readonly object _componentLock = new object();
+        private readonly ComponentCollection mComponents = new ComponentCollection();
+        private readonly object mComponentLock = new object();
 
         public LocalEventManager EventManager { get; } = new LocalEventManager();
 
         public bool IsActive { get; protected set; } = true;
         public bool IsDestroyed { get; private set; } = false;
 
-        private bool _isEditor;
+        private bool mIsEditor;
         public bool IsEditor
         {
-            get => _isEditor;
+            get => mIsEditor;
             set
             {
-                if (_isEditor == value || IsDestroyed) return;
-                _isEditor = value;
-                lock (_componentLock)
+                if (mIsEditor == value || IsDestroyed) return;
+                mIsEditor = value;
+                lock (mComponentLock)
                 {
-                    foreach (var component in _components)
+                    foreach (var component in mComponents)
                     {
                         ((IComponent)component).IsEditor = value;
                     }
@@ -225,11 +225,11 @@ namespace Fokiga.Runtime.Core
             }
         }
 
-        private bool _isAwakeCalled = false;
-        private bool _isStartCalled = false;
+        private bool mIsAwakeCalled = false;
+        private bool mIsStartCalled = false;
 
-        private ComponentBase[] _sortedComponentsCache;
-        private bool _needsSort = true;
+        private ComponentBase[] mSortedComponentsCache;
+        private bool mNeedsSort = true;
 
         public void CreateFromPrefab(GameObject prefab, Transform parent = null)
         {
@@ -241,7 +241,7 @@ namespace Fokiga.Runtime.Core
             }
 
             BeforeGetRealObject();
-            _realObject = UnityEngine.Object.Instantiate(prefab, parent);
+            mRealObject = UnityEngine.Object.Instantiate(prefab, parent);
             AfterGetPrefab(prefab);
 
         }
@@ -251,7 +251,7 @@ namespace Fokiga.Runtime.Core
             if (IsDestroyed || existingObject == null) return;
 
             BeforeGetRealObject();
-            _realObject = existingObject;
+            mRealObject = existingObject;
             AfterGetPrefab(null);
         }
 
@@ -259,9 +259,9 @@ namespace Fokiga.Runtime.Core
         {
             Debug.Log($"[{GetType().Name}] 准备获取真实对象");
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalBeforeGetRealObject();
                 }
@@ -272,9 +272,9 @@ namespace Fokiga.Runtime.Core
         {
             Debug.Log($"[{GetType().Name}] 已获取{(prefab != null ? "预制体" : "真实对象")}");
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalAfterGetPrefab(prefab);
                 }
@@ -283,14 +283,14 @@ namespace Fokiga.Runtime.Core
 
         protected virtual void BeforeDestroyRealObject()
         {
-            if (_realObject != null)
+            if (mRealObject != null)
             {
-                Debug.Log($"[{GetType().Name}] 准备销毁真实对象: {_realObject.name}");
+                Debug.Log($"[{GetType().Name}] 准备销毁真实对象: {mRealObject.name}");
             }
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalBeforeDestroyRealObject();
                 }
@@ -301,9 +301,9 @@ namespace Fokiga.Runtime.Core
         {
             Debug.Log($"[{GetType().Name}] 真实对象销毁完成");
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalAfterDestroyRealObject();
                 }
@@ -318,35 +318,35 @@ namespace Fokiga.Runtime.Core
                 return null;
             }
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
                 var componentType = typeof(T);
-                if (_components.Contains(componentType))
+                if (mComponents.Contains(componentType))
                 {
                     Debug.LogWarning($"组件 {componentType.Name} 已添加到Actor");
-                    return (T)_components[componentType];
+                    return (T)mComponents[componentType];
                 }
 
                 var component = new T();
                 ((IComponent)component).Owner = this;
-                ((IComponent)component).IsEditor = _isEditor;
-                _components.Add(component);
+                ((IComponent)component).IsEditor = mIsEditor;
+                mComponents.Add(component);
                 component.OnAddedToActor();
 
-                if (_isAwakeCalled) component.InternalAwake();
-                if (_isStartCalled) component.InternalStart();
+                if (mIsAwakeCalled) component.InternalAwake();
+                if (mIsStartCalled) component.InternalStart();
 
-                _needsSort = true;
+                mNeedsSort = true;
                 return component;
             }
         }
 
         public T GetComponent<T>() where T : ComponentBase
         {
-            lock (_componentLock)
+            lock (mComponentLock)
             {
                 var componentType = typeof(T);
-                return _components.TryGetComponent(componentType, out var component) ? component as T : null;
+                return mComponents.TryGetComponent(componentType, out var component) ? component as T : null;
             }
         }
 
@@ -354,17 +354,17 @@ namespace Fokiga.Runtime.Core
         {
             if (IsDestroyed) return;
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
                 var componentType = typeof(T);
-                if (_components.TryGetComponent(componentType, out var component))
+                if (mComponents.TryGetComponent(componentType, out var component))
                 {
                     component.OnRemovedFromActor();
                     EventManager.RemoveAllListeners(component);
                     component.InternalDestroy();
-                    _components.Remove(componentType);
+                    mComponents.Remove(componentType);
                     ((IComponent)component).Owner = null;
-                    _needsSort = true;
+                    mNeedsSort = true;
                 }
             }
         }
@@ -380,9 +380,9 @@ namespace Fokiga.Runtime.Core
             if (IsActive || IsDestroyed) return;
 
             IsActive = true;
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.Activate();
                 }
@@ -394,9 +394,9 @@ namespace Fokiga.Runtime.Core
             if (!IsActive || IsDestroyed) return;
 
             IsActive = false;
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.Deactivate();
                 }
@@ -406,33 +406,33 @@ namespace Fokiga.Runtime.Core
         // 实现IActor接口的生命周期方法
         public virtual void OnAwake()
         {
-            if (_isAwakeCalled || IsDestroyed) return;
-            lock (_componentLock)
+            if (mIsAwakeCalled || IsDestroyed) return;
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalAwake();
                 }
             }
-            _isAwakeCalled = true;
+            mIsAwakeCalled = true;
         }
 
         public virtual void OnStart()
         {
-            if (_isStartCalled || !_isAwakeCalled || IsDestroyed) return;
-            lock (_componentLock)
+            if (mIsStartCalled || !mIsAwakeCalled || IsDestroyed) return;
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalStart();
                 }
             }
-            _isStartCalled = true;
+            mIsStartCalled = true;
         }
 
         public virtual void OnUpdate(float deltaTime)
         {
-            if (!IsActive || IsDestroyed || !_isStartCalled) return;
+            if (!IsActive || IsDestroyed || !mIsStartCalled) return;
 
             foreach (var component in GetSortedComponents())
             {
@@ -442,7 +442,7 @@ namespace Fokiga.Runtime.Core
 
         public virtual void OnFixedUpdate(float fixedDeltaTime)
         {
-            if (!IsActive || IsDestroyed || !_isStartCalled) return;
+            if (!IsActive || IsDestroyed || !mIsStartCalled) return;
             foreach (var component in GetSortedComponents())
             {
                 component.InternalFixedUpdate(Time.fixedDeltaTime);
@@ -451,7 +451,7 @@ namespace Fokiga.Runtime.Core
 
         public virtual void OnLateUpdate(float deltaTime)
         {
-            if (!IsActive || IsDestroyed || !_isStartCalled) return;
+            if (!IsActive || IsDestroyed || !mIsStartCalled) return;
             foreach (var component in GetSortedComponents())
             {
                 component.InternalLateUpdate(Time.deltaTime);
@@ -467,23 +467,23 @@ namespace Fokiga.Runtime.Core
             IsDestroyed = true;
             IsActive = false;
 
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                foreach (var component in _components)
+                foreach (var component in mComponents)
                 {
                     component.InternalDestroy();
                     ((IComponent)component).Owner = null;
                 }
-                _components.Clear();
+                mComponents.Clear();
             }
 
-            if (_realObject != null)
+            if (mRealObject != null)
             {
                 if (IsEditor)
-                    UnityEngine.Object.DestroyImmediate(_realObject);
+                    UnityEngine.Object.DestroyImmediate(mRealObject);
                 else
-                    UnityEngine.Object.Destroy(_realObject);
-                _realObject = null;
+                    UnityEngine.Object.Destroy(mRealObject);
+                mRealObject = null;
             }
 
             AfterDestroyRealObject();
@@ -492,16 +492,16 @@ namespace Fokiga.Runtime.Core
 
         private ComponentBase[] GetSortedComponents()
         {
-            lock (_componentLock)
+            lock (mComponentLock)
             {
-                if (_needsSort || _sortedComponentsCache == null)
+                if (mNeedsSort || mSortedComponentsCache == null)
                 {
-                    _sortedComponentsCache = _components
+                    mSortedComponentsCache = mComponents
                     .OrderByDescending(c => c.UpdatePriority)
                     .ToArray();
-                    _needsSort = false;
+                    mNeedsSort = false;
                 }
-                return _sortedComponentsCache;
+                return mSortedComponentsCache;
             }
         }
 

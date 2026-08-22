@@ -19,10 +19,10 @@ namespace UnityChan
         private Animator anim;                      // Animatorへの参照
         private AnimatorStateInfo currentState;     // 現在のステート状態を保存する参照
         private AnimatorStateInfo previousState;    // ひとつ前のステート状態を保存する参照
-        public bool _random = false;                // ランダム判定スタートスイッチ
-        public float _threshold = 0.5f;             // ランダム判定の閾値
-        public float _interval = 10f;               // ランダム判定のインターバル
-                                                    //private float _seed = 0.0f;                    // ランダム判定用シード
+        public bool mRandom = false;                // ランダム判定スタートスイッチ
+        public float mThreshold = 0.5f;             // ランダム判定の閾値
+        public float mInterval = 10f;               // ランダム判定のインターバル
+                                                    //private float seed = 0.0f;                     // ランダム判定用シード
 
 
 
@@ -96,21 +96,21 @@ namespace UnityChan
             while (true)
             {
                 //ランダム判定スイッチオンの場合
-                if (_random)
+                if (mRandom)
                 {
                     // ランダムシードを取り出し、その大きさによってフラグ設定をする
-                    float _seed = Random.Range(0.0f, 1.0f);
-                    if (_seed < _threshold)
+                    float seed = Random.Range(0.0f, 1.0f);
+                    if (seed < mThreshold)
                     {
                         anim.SetBool("Back", true);
                     }
-                    else if (_seed >= _threshold)
+                    else if (seed >= mThreshold)
                     {
                         anim.SetBool("Next", true);
                     }
                 }
                 // 次の判定までインターバルを置く
-                yield return new WaitForSeconds(_interval);
+                yield return new WaitForSeconds(mInterval);
             }
 
         }

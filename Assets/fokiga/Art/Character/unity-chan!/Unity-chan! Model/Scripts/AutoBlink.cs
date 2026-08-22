@@ -136,10 +136,10 @@ namespace UnityChan
             while (true)
             {
                 //ランダム判定用シード発生
-                float _seed = Random.Range(0.0f, 1.0f);
+                float seed = Random.Range(0.0f, 1.0f);
                 if (!isBlink)
                 {
-                    if (_seed > threshold)
+                    if (seed > threshold)
                     {
                         isBlink = true;
                     }

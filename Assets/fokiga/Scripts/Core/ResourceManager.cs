@@ -79,18 +79,18 @@ namespace Fokiga.Runtime.Core
         public static ResourceManager Instance { get; private set; }
 
         // 线程安全锁
-        private readonly object _resourceLock = new object();
-        private readonly object _poolLock = new object();
+        private readonly object mResourceLock = new object();
+        private readonly object mPoolLock = new object();
 
         // 资源记录
-        private readonly Dictionary<string, ResourceInfo> _loadedResources = new Dictionary<string, ResourceInfo>();
+        private readonly Dictionary<string, ResourceInfo> mLoadedResources = new Dictionary<string, ResourceInfo>();
 
         // 模板池
-        private readonly Dictionary<string, Queue<UnityEngine.Object>> _templatePools = new Dictionary<string, Queue<UnityEngine.Object>>();
-        private readonly Dictionary<UnityEngine.Object, string> _instanceToTemplate = new Dictionary<UnityEngine.Object, string>();
+        private readonly Dictionary<string, Queue<UnityEngine.Object>> mTemplatePools = new Dictionary<string, Queue<UnityEngine.Object>>();
+        private readonly Dictionary<UnityEngine.Object, string> mInstanceToTemplate = new Dictionary<UnityEngine.Object, string>();
 
         // AssetBundle 缓存
-        private readonly Dictionary<string, AssetBundle> _loadedAssetBundles = new Dictionary<string, AssetBundle>();
+        private readonly Dictionary<string, AssetBundle> mLoadedAssetBundles = new Dictionary<string, AssetBundle>();
 
         // 默认加载策略
         public ResourceLoadStrategy DefaultLoadStrategy = ResourceLoadStrategy.Auto;
@@ -145,12 +145,12 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual T Load<T>(string path, ResourceLoadStrategy strategy) where T : UnityEngine.Object
         {
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
                 string key = $"{typeof(T).Name}:{path}";
 
                 // 检查资源是否已加载
-                if (_loadedResources.TryGetValue(key, out var info))
+                if (mLoadedResources.TryGetValue(key, out var info))
                 {
                     info.ReferenceCount++;
                     return info.Resource as T;
@@ -190,7 +190,7 @@ namespace Fokiga.Runtime.Core
                 }
 
                 // 记录资源信息
-                _loadedResources[key] = new ResourceInfo
+                mLoadedResources[key] = new ResourceInfo
                 {
                     Resource = resource,
                     ReferenceCount = 1,
@@ -253,7 +253,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private AssetBundle LoadAssetBundle(string bundleName)
         {
-            if (_loadedAssetBundles.TryGetValue(bundleName, out var bundle))
+            if (mLoadedAssetBundles.TryGetValue(bundleName, out var bundle))
             {
                 return bundle;
             }
@@ -267,7 +267,7 @@ namespace Fokiga.Runtime.Core
                     bundle = AssetBundle.LoadFromFile(bundlePath);
                     if (bundle != null)
                     {
-                        _loadedAssetBundles[bundleName] = bundle;
+                        mLoadedAssetBundles[bundleName] = bundle;
                         Debug.Log($"AssetBundle 加载成功: {bundleName}");
                     }
                 }
@@ -293,12 +293,12 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual async Task<T> LoadAsync<T>(string path, ResourceLoadStrategy strategy) where T : UnityEngine.Object
         {
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
                 string key = $"{typeof(T).Name}:{path}";
 
                 // 检查资源是否已加载
-                if (_loadedResources.TryGetValue(key, out var info))
+                if (mLoadedResources.TryGetValue(key, out var info))
                 {
                     info.ReferenceCount++;
                     return info.Resource as T;
@@ -339,11 +339,11 @@ namespace Fokiga.Runtime.Core
                     return null;
                 }
 
-                lock (_resourceLock)
+                lock (mResourceLock)
                 {
                     string key = $"{typeof(T).Name}:{path}";
                     // 记录资源信息
-                    _loadedResources[key] = new ResourceInfo
+                    mLoadedResources[key] = new ResourceInfo
                     {
                         Resource = resource,
                         ReferenceCount = 1,
@@ -417,7 +417,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         private async Task<AssetBundle> LoadAssetBundleAsync(string bundleName)
         {
-            if (_loadedAssetBundles.TryGetValue(bundleName, out var bundle))
+            if (mLoadedAssetBundles.TryGetValue(bundleName, out var bundle))
             {
                 return bundle;
             }
@@ -434,7 +434,7 @@ namespace Fokiga.Runtime.Core
                     bundle = operation.assetBundle;
                     if (bundle != null)
                     {
-                        _loadedAssetBundles[bundleName] = bundle;
+                        mLoadedAssetBundles[bundleName] = bundle;
                         Debug.Log($"AssetBundle 异步加载成功: {bundleName}");
                     }
                 }
@@ -458,10 +458,10 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
                 // 查找资源
-                foreach (var kvp in _loadedResources)
+                foreach (var kvp in mLoadedResources)
                 {
                     if (kvp.Value.Resource == resource)
                     {
@@ -493,13 +493,13 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
                 // 查找资源
                 string targetKey = null;
                 ResourceInfo targetInfo = null;
 
-                foreach (var kvp in _loadedResources)
+                foreach (var kvp in mLoadedResources)
                 {
                     if (kvp.Value.Resource == resource)
                     {
@@ -549,7 +549,7 @@ namespace Fokiga.Runtime.Core
                     break;
             }
 
-            _loadedResources.Remove(key);
+            mLoadedResources.Remove(key);
             Debug.Log($"资源已卸载: {key}");
         }
 
@@ -558,24 +558,24 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual void ClearAll()
         {
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
-                foreach (var kvp in _loadedResources)
+                foreach (var kvp in mLoadedResources)
                 {
                     UnloadResource(kvp.Key, kvp.Value);
                 }
 
-                _loadedResources.Clear();
+                mLoadedResources.Clear();
 
                 // 卸载所有 AssetBundle
-                foreach (var bundle in _loadedAssetBundles.Values)
+                foreach (var bundle in mLoadedAssetBundles.Values)
                 {
                     bundle.Unload(true);
                 }
-                _loadedAssetBundles.Clear();
+                mLoadedAssetBundles.Clear();
             }
 
-            lock (_poolLock)
+            lock (mPoolLock)
             {
                 Clear();
             }
@@ -588,9 +588,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual int GetResourceCount()
         {
-            lock (_resourceLock)
+            lock (mResourceLock)
             {
-                return _loadedResources.Count;
+                return mLoadedResources.Count;
             }
         }
 
@@ -601,17 +601,17 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual T Get<T>(string templateName) where T : UnityEngine.Object
         {
-            lock (_poolLock)
+            lock (mPoolLock)
             {
                 string key = $"{typeof(T).Name}:{templateName}";
 
                 // 检查模板池是否存在
-                if (_templatePools.TryGetValue(key, out var pool) && pool.Count > 0)
+                if (mTemplatePools.TryGetValue(key, out var pool) && pool.Count > 0)
                 {
                     var instance = pool.Dequeue() as T;
                     if (instance != null)
                     {
-                        _instanceToTemplate[instance] = key;
+                        mInstanceToTemplate[instance] = key;
                         Debug.Log($"从模板池获取实例: {key}");
                         return instance;
                     }
@@ -638,7 +638,7 @@ namespace Fokiga.Runtime.Core
 
                 if (newInstance != null)
                 {
-                    _instanceToTemplate[newInstance] = key;
+                    mInstanceToTemplate[newInstance] = key;
                     Debug.Log($"创建新模板实例: {key}");
                 }
 
@@ -657,15 +657,15 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            lock (_poolLock)
+            lock (mPoolLock)
             {
-                if (_instanceToTemplate.TryGetValue(instance, out var templateKey))
+                if (mInstanceToTemplate.TryGetValue(instance, out var templateKey))
                 {
                     // 确保模板池存在
-                    if (!_templatePools.TryGetValue(templateKey, out var pool))
+                    if (!mTemplatePools.TryGetValue(templateKey, out var pool))
                     {
                         pool = new Queue<UnityEngine.Object>();
-                        _templatePools[templateKey] = pool;
+                        mTemplatePools[templateKey] = pool;
                     }
 
                     // 处理GameObject实例
@@ -680,7 +680,7 @@ namespace Fokiga.Runtime.Core
 
                     // 将实例放回池
                     pool.Enqueue(instance);
-                    _instanceToTemplate.Remove(instance);
+                    mInstanceToTemplate.Remove(instance);
 
                     Debug.Log($"归还模板实例到池: {templateKey}");
                 }
@@ -704,15 +704,15 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            lock (_poolLock)
+            lock (mPoolLock)
             {
                 string key = $"{typeof(T).Name}:{templateName}";
 
                 // 确保模板池存在
-                if (!_templatePools.TryGetValue(key, out var pool))
+                if (!mTemplatePools.TryGetValue(key, out var pool))
                 {
                     pool = new Queue<UnityEngine.Object>();
-                    _templatePools[key] = pool;
+                    mTemplatePools[key] = pool;
                 }
 
                 // 创建实例并加入池
@@ -748,9 +748,9 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual void Clear()
         {
-            lock (_poolLock)
+            lock (mPoolLock)
             {
-                foreach (var pool in _templatePools.Values)
+                foreach (var pool in mTemplatePools.Values)
                 {
                     foreach (var instance in pool)
                     {
@@ -762,8 +762,8 @@ namespace Fokiga.Runtime.Core
                     pool.Clear();
                 }
 
-                _templatePools.Clear();
-                _instanceToTemplate.Clear();
+                mTemplatePools.Clear();
+                mInstanceToTemplate.Clear();
 
                 Debug.Log("模板池已清空");
             }

@@ -34,19 +34,19 @@ namespace Fokiga.Runtime.Core
     /// </summary>
     internal static class EventDefinitionCache
     {
-        private static readonly Dictionary<string, Type> _allEventTypes = new Dictionary<string, Type>();
-        private static bool _isInitialized;
+        private static readonly Dictionary<string, Type> mAllEventTypes = new Dictionary<string, Type>();
+        private static bool mIsInitialized;
 
         internal static void Initialize()
         {
-            if (_isInitialized) return;
+            if (mIsInitialized) return;
 
             DiscoverEventDefinitions();
 
             // 使用条件编译来处理不同环境下的日志输出
-            Debug.Log($"事件定义缓存初始化完成，共发现 {_allEventTypes.Count} 个事件定义");
+            Debug.Log($"事件定义缓存初始化完成，共发现 {mAllEventTypes.Count} 个事件定义");
 
-            _isInitialized = true;
+            mIsInitialized = true;
         }
 
         private static void DiscoverEventDefinitions()
@@ -60,9 +60,9 @@ namespace Fokiga.Runtime.Core
                         if (type.IsSubclassOf(typeof(EventDefinition)) && !type.IsAbstract)
                         {
                             var instance = Activator.CreateInstance(type) as EventDefinition;
-                            if (instance != null && !_allEventTypes.ContainsKey(instance.EventName))
+                            if (instance != null && !mAllEventTypes.ContainsKey(instance.EventName))
                             {
-                                _allEventTypes.Add(instance.EventName, type);
+                                mAllEventTypes.Add(instance.EventName, type);
                             }
                         }
                     }
@@ -78,17 +78,17 @@ namespace Fokiga.Runtime.Core
 
         internal static bool TryGetEventType(string eventName, out Type type)
         {
-            return _allEventTypes.TryGetValue(eventName, out type);
+            return mAllEventTypes.TryGetValue(eventName, out type);
         }
 
         internal static bool ContainsEvent(string eventName)
         {
-            return _allEventTypes.ContainsKey(eventName);
+            return mAllEventTypes.ContainsKey(eventName);
         }
 
         internal static IEnumerable<string> GetAllEventNames()
         {
-            return _allEventTypes.Keys;
+            return mAllEventTypes.Keys;
         }
     }
 }

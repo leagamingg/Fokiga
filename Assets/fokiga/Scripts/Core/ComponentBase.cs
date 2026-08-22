@@ -73,41 +73,41 @@ namespace Fokiga.Runtime.Core
     public abstract class ComponentBase : IComponent
     {
         // 所属Actor的私有字段
-        private ActorBase _owner;
+        private ActorBase mOwner;
 
         // 显式实现IComponent的Owner属性，满足接口的internal set需求
         ActorBase IComponent.Owner
         {
-            get => _owner;
-            set => _owner = value;
+            get => mOwner;
+            set => mOwner = value;
         }
 
         // 公开的Owner属性，供外部只读访问
-        public ActorBase Owner => _owner;
+        public ActorBase Owner => mOwner;
 
         // 状态标识
         public bool IsActive { get; protected set; } = true;
         public bool Enabled { get; set; } = true;
 
         // 编辑模式标识
-        private bool _isEditor;
+        private bool mIsEditor;
 
         // 显式实现IComponent的IsEditor属性，满足接口的internal set需求
         bool IComponent.IsEditor
         {
-            get => _isEditor;
+            get => mIsEditor;
             set
             {
-                if (_isEditor != value)
+                if (mIsEditor != value)
                 {
-                    _isEditor = value;
+                    mIsEditor = value;
                     OnEditorModeChanged(value);
                 }
             }
         }
 
         // 公开的IsEditor属性，供外部只读访问
-        public bool IsEditor => _isEditor;
+        public bool IsEditor => mIsEditor;
 
         public bool RunInEditor { get; set; } = false;
 
@@ -140,69 +140,69 @@ namespace Fokiga.Runtime.Core
         }
 
         // 线程安全锁
-        private readonly object _callbackLock = new object();
+        private readonly object mCallbackLock = new object();
 
         // 持久化回调字典(哈希表存储保证O(1)的查询效率)
-        private Dictionary<Guid, UpdateCallback> _persistentUpdates = new Dictionary<Guid, UpdateCallback>();
-        private Dictionary<Guid, UpdateCallback> _persistentFixedUpdates = new Dictionary<Guid, UpdateCallback>();
-        private Dictionary<Guid, UpdateCallback> _persistentLateUpdates = new Dictionary<Guid, UpdateCallback>();
+        private Dictionary<Guid, UpdateCallback> mPersistentUpdates = new Dictionary<Guid, UpdateCallback>();
+        private Dictionary<Guid, UpdateCallback> mPersistentFixedUpdates = new Dictionary<Guid, UpdateCallback>();
+        private Dictionary<Guid, UpdateCallback> mPersistentLateUpdates = new Dictionary<Guid, UpdateCallback>();
 
         // 一次性回调列表(预先分配空间减少gc)
-        private List<UpdateCallback> _oneShotUpdates = new List<UpdateCallback>(16);
-        private List<UpdateCallback> _oneShotFixedUpdates = new List<UpdateCallback>(16);
-        private List<UpdateCallback> _oneShotLateUpdates = new List<UpdateCallback>(16);
+        private List<UpdateCallback> mOneShotUpdates = new List<UpdateCallback>(16);
+        private List<UpdateCallback> mOneShotFixedUpdates = new List<UpdateCallback>(16);
+        private List<UpdateCallback> mOneShotLateUpdates = new List<UpdateCallback>(16);
 
         // 排序后的回调列表(按优先级排序)
-        private List<UpdateCallback> _sortedPersistentUpdates = new List<UpdateCallback>();
-        private List<UpdateCallback> _sortedPersistentFixedUpdates = new List<UpdateCallback>();
-        private List<UpdateCallback> _sortedPersistentLateUpdates = new List<UpdateCallback>();
-        private bool _needsSortingUpdates = false;
-        private bool _needsSortingFixedUpdates = false;
-        private bool _needsSortingLateUpdates = false;
+        private List<UpdateCallback> mSortedPersistentUpdates = new List<UpdateCallback>();
+        private List<UpdateCallback> mSortedPersistentFixedUpdates = new List<UpdateCallback>();
+        private List<UpdateCallback> mSortedPersistentLateUpdates = new List<UpdateCallback>();
+        private bool mNeedsSortingUpdates = false;
+        private bool mNeedsSortingFixedUpdates = false;
+        private bool mNeedsSortingLateUpdates = false;
 
         // 初始化状态标识
-        private bool _isAwakeCalled = false;
-        private bool _isStartCalled = false;
-        private bool _isDestroyed = false;
+        private bool mIsAwakeCalled = false;
+        private bool mIsStartCalled = false;
+        private bool mIsDestroyed = false;
 
         /// <summary>
         /// 标识是否已经完成初始化(OnAwake和OnStart均已执行)
         /// </summary>
-        public bool IsInitialized => _isAwakeCalled && _isStartCalled;
+        public bool IsInitialized => mIsAwakeCalled && mIsStartCalled;
 
         /// <summary>
         /// 当前是否处于更新状态
         /// </summary>
-        public bool IsUpdating => _shouldUpdate && IsActive && Enabled;
+        public bool IsUpdating => mShouldUpdate && IsActive && Enabled;
 
         /// <summary>
         /// 当组件被添加到Actor时调用
         /// </summary>
         public virtual void OnAddedToActor()
         {
-            if (AutoActivate && _owner != null && !_owner.IsDestroyed)
+            if (AutoActivate && mOwner != null && !mOwner.IsDestroyed)
             {
                 Activate();
             }
 
             // 补充逻辑：检查Actor是否已加载完成RealObject，若已加载则手动触发AfterGetPrefab
-            if (_owner != null && !_owner.IsDestroyed && _owner.RealObject != null)
+            if (mOwner != null && !mOwner.IsDestroyed && mOwner.RealObject != null)
             {
                 // 模拟Actor已加载完prefab的场景，此时prefab参数已无实际意义，传null保持一致性
                 AfterGetPrefab(null);
             }
 
             // 保证：在添加时补全未执行的初始化步骤
-            if (_owner != null && !_isDestroyed)
+            if (mOwner != null && !mIsDestroyed)
             {
                 // 补全Awake
-                if (!_isAwakeCalled)
+                if (!mIsAwakeCalled)
                 {
                     InternalAwake();
                 }
 
                 // 补全Start
-                if (_isAwakeCalled && !_isStartCalled)
+                if (mIsAwakeCalled && !mIsStartCalled)
                 {
                     InternalStart();
                 }
@@ -214,7 +214,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public virtual void OnRemovedFromActor()
         {
-            _owner?.EventManager.RemoveAllListeners(this);
+            mOwner?.EventManager.RemoveAllListeners(this);
             ClearAllUpdates();
         }
 
@@ -287,9 +287,9 @@ namespace Fokiga.Runtime.Core
             updateFunction,
             priority,
             isOneShot,
-            _persistentUpdates,
-            _oneShotUpdates,
-            ref _needsSortingUpdates
+            mPersistentUpdates,
+            mOneShotUpdates,
+            ref mNeedsSortingUpdates
             );
         }
 
@@ -302,9 +302,9 @@ namespace Fokiga.Runtime.Core
             fixedUpdateFunction,
             priority,
             isOneShot,
-            _persistentFixedUpdates,
-            _oneShotFixedUpdates,
-            ref _needsSortingFixedUpdates
+            mPersistentFixedUpdates,
+            mOneShotFixedUpdates,
+            ref mNeedsSortingFixedUpdates
             );
         }
 
@@ -317,9 +317,9 @@ namespace Fokiga.Runtime.Core
             lateUpdateFunction,
             priority,
             isOneShot,
-            _persistentLateUpdates,
-            _oneShotLateUpdates,
-            ref _needsSortingLateUpdates
+            mPersistentLateUpdates,
+            mOneShotLateUpdates,
+            ref mNeedsSortingLateUpdates
             );
         }
 
@@ -328,15 +328,15 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void RemoveUpdate(Guid callbackId)
         {
-            lock (_callbackLock)
+            lock (mCallbackLock)
             {
-                _persistentUpdates.Remove(callbackId);
-                _persistentFixedUpdates.Remove(callbackId);
-                _persistentLateUpdates.Remove(callbackId);
+                mPersistentUpdates.Remove(callbackId);
+                mPersistentFixedUpdates.Remove(callbackId);
+                mPersistentLateUpdates.Remove(callbackId);
 
-                _needsSortingUpdates = true;
-                _needsSortingFixedUpdates = true;
-                _needsSortingLateUpdates = true;
+                mNeedsSortingUpdates = true;
+                mNeedsSortingFixedUpdates = true;
+                mNeedsSortingLateUpdates = true;
             }
         }
 
@@ -345,23 +345,23 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void ClearAllUpdates()
         {
-            lock (_callbackLock)
+            lock (mCallbackLock)
             {
-                _persistentUpdates.Clear();
-                _persistentFixedUpdates.Clear();
-                _persistentLateUpdates.Clear();
+                mPersistentUpdates.Clear();
+                mPersistentFixedUpdates.Clear();
+                mPersistentLateUpdates.Clear();
 
-                _oneShotUpdates.Clear();
-                _oneShotFixedUpdates.Clear();
-                _oneShotLateUpdates.Clear();
+                mOneShotUpdates.Clear();
+                mOneShotFixedUpdates.Clear();
+                mOneShotLateUpdates.Clear();
 
-                _sortedPersistentUpdates.Clear();
-                _sortedPersistentFixedUpdates.Clear();
-                _sortedPersistentLateUpdates.Clear();
+                mSortedPersistentUpdates.Clear();
+                mSortedPersistentFixedUpdates.Clear();
+                mSortedPersistentLateUpdates.Clear();
 
-                _needsSortingUpdates = false;
-                _needsSortingFixedUpdates = false;
-                _needsSortingLateUpdates = false;
+                mNeedsSortingUpdates = false;
+                mNeedsSortingFixedUpdates = false;
+                mNeedsSortingLateUpdates = false;
             }
         }
 
@@ -391,12 +391,12 @@ namespace Fokiga.Runtime.Core
 
         public void AddListener<TEvt>(Action<TEvt> listener) where TEvt : EventDefinition, new()
         {
-            _owner?.EventManager.AddListener(this, listener);
+            mOwner?.EventManager.AddListener(this, listener);
         }
 
         public void RemoveListener<TEvt>(Action<TEvt> listener) where TEvt : EventDefinition, new()
         {
-            _owner?.EventManager.RemoveListener(this, listener);
+            mOwner?.EventManager.RemoveListener(this, listener);
         }
 
         #endregion
@@ -406,20 +406,20 @@ namespace Fokiga.Runtime.Core
         internal void InternalAwake()
         {
             // 强制检查所属Actor和组件状态
-            if (!_isAwakeCalled && !_isDestroyed && _owner != null && !_owner.IsDestroyed)
+            if (!mIsAwakeCalled && !mIsDestroyed && mOwner != null && !mOwner.IsDestroyed)
             {
                 OnAwake();
-                _isAwakeCalled = true;
+                mIsAwakeCalled = true;
             }
         }
 
         internal void InternalStart()
         {
             // 强制检查所属Actor和组件状态
-            if (!_isStartCalled && _isAwakeCalled && !_isDestroyed && _owner != null && !_owner.IsDestroyed)
+            if (!mIsStartCalled && mIsAwakeCalled && !mIsDestroyed && mOwner != null && !mOwner.IsDestroyed)
             {
                 OnStart();
-                _isStartCalled = true;
+                mIsStartCalled = true;
             }
         }
 
@@ -427,15 +427,15 @@ namespace Fokiga.Runtime.Core
         {
             if (!EnableUpdate) return;
 
-            _shouldUpdate = ShouldExecuteUpdate();
-            if (_shouldUpdate)
+            mShouldUpdate = ShouldExecuteUpdate();
+            if (mShouldUpdate)
             {
                 OnUpdate(deltaTime);
                 ExecuteCallbacks(
-                _persistentUpdates,
-                _oneShotUpdates,
-                _sortedPersistentUpdates,
-                ref _needsSortingUpdates,
+                mPersistentUpdates,
+                mOneShotUpdates,
+                mSortedPersistentUpdates,
+                ref mNeedsSortingUpdates,
                 deltaTime
                 );
             }
@@ -445,15 +445,15 @@ namespace Fokiga.Runtime.Core
         {
             if (!EnableFixedUpdate) return;
 
-            _shouldUpdate = ShouldExecuteUpdate();
-            if (_shouldUpdate)
+            mShouldUpdate = ShouldExecuteUpdate();
+            if (mShouldUpdate)
             {
                 OnFixedUpdate(fixedDeltaTime);
                 ExecuteCallbacks(
-                _persistentFixedUpdates,
-                _oneShotFixedUpdates,
-                _sortedPersistentFixedUpdates,
-                ref _needsSortingFixedUpdates,
+                mPersistentFixedUpdates,
+                mOneShotFixedUpdates,
+                mSortedPersistentFixedUpdates,
+                ref mNeedsSortingFixedUpdates,
                 fixedDeltaTime
                 );
             }
@@ -463,15 +463,15 @@ namespace Fokiga.Runtime.Core
         {
             if (!EnableLateUpdate) return;
 
-            _shouldUpdate = ShouldExecuteUpdate();
-            if (_shouldUpdate)
+            mShouldUpdate = ShouldExecuteUpdate();
+            if (mShouldUpdate)
             {
                 OnLateUpdate(deltaTime);
                 ExecuteCallbacks(
-                _persistentLateUpdates,
-                _oneShotLateUpdates,
-                _sortedPersistentLateUpdates,
-                ref _needsSortingLateUpdates,
+                mPersistentLateUpdates,
+                mOneShotLateUpdates,
+                mSortedPersistentLateUpdates,
+                ref mNeedsSortingLateUpdates,
                 deltaTime
                 );
             }
@@ -479,26 +479,26 @@ namespace Fokiga.Runtime.Core
 
         internal void InternalDestroy()
         {
-            if (!_isDestroyed)
+            if (!mIsDestroyed)
             {
                 OnDestroy();
 
                 // 清理并释放资源，防止内存泄漏
                 ClearAllUpdates();
-                _persistentUpdates = null;
-                _persistentFixedUpdates = null;
-                _persistentLateUpdates = null;
-                _oneShotUpdates = null;
-                _oneShotFixedUpdates = null;
-                _oneShotLateUpdates = null;
-                _sortedPersistentUpdates = null;
-                _sortedPersistentFixedUpdates = null;
-                _sortedPersistentLateUpdates = null;
+                mPersistentUpdates = null;
+                mPersistentFixedUpdates = null;
+                mPersistentLateUpdates = null;
+                mOneShotUpdates = null;
+                mOneShotFixedUpdates = null;
+                mOneShotLateUpdates = null;
+                mSortedPersistentUpdates = null;
+                mSortedPersistentFixedUpdates = null;
+                mSortedPersistentLateUpdates = null;
 
-                _isDestroyed = true;
-                _isAwakeCalled = false;
-                _isStartCalled = false;
-                _owner = null;
+                mIsDestroyed = true;
+                mIsAwakeCalled = false;
+                mIsStartCalled = false;
+                mOwner = null;
             }
         }
 
@@ -508,7 +508,7 @@ namespace Fokiga.Runtime.Core
 
         internal void InternalBeforeGetRealObject()
         {
-            if (!_isDestroyed && IsActive && _owner != null && !_owner.IsDestroyed)
+            if (!mIsDestroyed && IsActive && mOwner != null && !mOwner.IsDestroyed)
             {
                 BeforeGetRealObject();
             }
@@ -516,7 +516,7 @@ namespace Fokiga.Runtime.Core
 
         internal void InternalAfterGetPrefab(GameObject prefab)
         {
-            if (!_isDestroyed && IsActive && _owner != null && !_owner.IsDestroyed)
+            if (!mIsDestroyed && IsActive && mOwner != null && !mOwner.IsDestroyed)
             {
                 AfterGetPrefab(prefab);
             }
@@ -524,7 +524,7 @@ namespace Fokiga.Runtime.Core
 
         internal void InternalBeforeDestroyRealObject()
         {
-            if (!_isDestroyed && IsActive && _owner != null && !_owner.IsDestroyed)
+            if (!mIsDestroyed && IsActive && mOwner != null && !mOwner.IsDestroyed)
             {
                 BeforeDestroyRealObject();
             }
@@ -532,7 +532,7 @@ namespace Fokiga.Runtime.Core
 
         internal void InternalAfterDestroyRealObject()
         {
-            if (!_isDestroyed) // 销毁后可能还需要执行的收尾工作，不检查IsActive
+            if (!mIsDestroyed) // 销毁后可能还需要执行的收尾工作，不检查IsActive
             {
                 AfterDestroyRealObject();
             }
@@ -549,15 +549,15 @@ namespace Fokiga.Runtime.Core
         private bool ShouldExecuteUpdate()
         {
             // 编辑模式过滤
-            if (_isEditor && !RunInEditor)
+            if (mIsEditor && !RunInEditor)
                 return false;
 
             // 组件状态过滤
-            if (!IsActive || !Enabled || !_isStartCalled || _isDestroyed)
+            if (!IsActive || !Enabled || !mIsStartCalled || mIsDestroyed)
                 return false;
 
             // 所属Actor状态过滤
-            if (_owner == null || !_owner.IsActive || _owner.IsDestroyed)
+            if (mOwner == null || !mOwner.IsActive || mOwner.IsDestroyed)
                 return false;
 
             return true;
@@ -574,7 +574,7 @@ namespace Fokiga.Runtime.Core
         List<UpdateCallback> oneShotCallbacks,
         ref bool needsSorting)
         {
-            if (function == null || _isDestroyed || _owner?.IsDestroyed == true)
+            if (function == null || mIsDestroyed || mOwner?.IsDestroyed == true)
                 return Guid.Empty;
 
             var id = Guid.NewGuid();
@@ -587,7 +587,7 @@ namespace Fokiga.Runtime.Core
 
             var callback = new UpdateCallback(function, priority, id, callStack);
 
-            lock (_callbackLock)
+            lock (mCallbackLock)
             {
                 if (isOneShot)
                 {
@@ -618,7 +618,7 @@ namespace Fokiga.Runtime.Core
             // 执行持久化回调
             if (persistentCallbacks?.Count > 0)
             {
-                lock (_callbackLock)
+                lock (mCallbackLock)
                 {
                     // 需要时进行排序(降低排序频率)
                     if (needsSorting)
@@ -653,7 +653,7 @@ namespace Fokiga.Runtime.Core
             // 执行一次性回调(倒序遍历避免删除元素时影响索引)
             if (oneShotCallbacks?.Count > 0)
             {
-                lock (_callbackLock)
+                lock (mCallbackLock)
                 {
                     for (int i = oneShotCallbacks.Count - 1; i >= 0; i--)
                     {
@@ -675,6 +675,6 @@ namespace Fokiga.Runtime.Core
         #endregion
 
         // 用于IsUpdating属性的内部标识
-        private bool _shouldUpdate;
+        private bool mShouldUpdate;
     }
 }

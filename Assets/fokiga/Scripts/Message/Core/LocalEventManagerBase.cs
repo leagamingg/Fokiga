@@ -10,7 +10,7 @@ namespace Fokiga.Runtime.Core
     public class MessageLocalEventManager
     {
         // 使用更高效的数据结构：实例 -> (事件名称 -> 监听器列表)
-        private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> _localEvents =
+        private readonly Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>> mLocalEvents =
         new Dictionary<object, Dictionary<string, List<Action<EventDefinition>>>>();
 
         // 缓存事件类型信息以避免重复创建实例
@@ -81,10 +81,10 @@ namespace Fokiga.Runtime.Core
             Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
             // 使用更简洁的字典访问方式
-            if (!_localEvents.TryGetValue(instance, out var instanceEventDict))
+            if (!mLocalEvents.TryGetValue(instance, out var instanceEventDict))
             {
                 instanceEventDict = new Dictionary<string, List<Action<EventDefinition>>>();
-                _localEvents[instance] = instanceEventDict;
+                mLocalEvents[instance] = instanceEventDict;
             }
 
             if (!instanceEventDict.TryGetValue(eventName, out var listeners))
@@ -114,7 +114,7 @@ namespace Fokiga.Runtime.Core
             var (eventName, _) = GetEventTypeMetadata<TEvt>();
             Action<EventDefinition> baseListener = args => listener((TEvt)args);
 
-            if (_localEvents.TryGetValue(instance, out var instanceEventDict) &&
+            if (mLocalEvents.TryGetValue(instance, out var instanceEventDict) &&
             instanceEventDict.TryGetValue(eventName, out var listeners))
             {
                 int removedCount = listeners.RemoveAll(l => l == baseListener);
@@ -125,7 +125,7 @@ namespace Fokiga.Runtime.Core
 
                     if (instanceEventDict.Count == 0)
                     {
-                        _localEvents.Remove(instance);
+                        mLocalEvents.Remove(instance);
                     }
                 }
             }
@@ -138,7 +138,7 @@ namespace Fokiga.Runtime.Core
         {
             if (instance != null)
             {
-                _localEvents.Remove(instance);
+                mLocalEvents.Remove(instance);
             }
         }
 
@@ -173,7 +173,7 @@ namespace Fokiga.Runtime.Core
                 return;
             }
 
-            if (_localEvents.TryGetValue(instance, out var instanceEventDict) &&
+            if (mLocalEvents.TryGetValue(instance, out var instanceEventDict) &&
             instanceEventDict.TryGetValue(eventName, out var listeners))
             {
                 // 创建副本以避免在迭代过程中修改集合
@@ -198,7 +198,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public void Clear()
         {
-            _localEvents.Clear();
+            mLocalEvents.Clear();
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         public int GetListenerCount(object instance, string eventName = null)
         {
-            if (instance == null || !_localEvents.TryGetValue(instance, out var instanceEventDict))
+            if (instance == null || !mLocalEvents.TryGetValue(instance, out var instanceEventDict))
                 return 0;
 
             if (string.IsNullOrEmpty(eventName))

@@ -34,42 +34,42 @@ namespace Fokiga.Runtime.Gameplay
     {
         public static readonly GameplayTag Invalid = new GameplayTag(GameplayTagId.Invalid, 0, string.Empty, string.Empty);
 
-        private readonly GameplayTagId _id;
-        private readonly int _registryVersion;
-        private readonly string _path;
-        private readonly string _guid;
+        private readonly GameplayTagId mId;
+        private readonly int mRegistryVersion;
+        private readonly string mPath;
+        private readonly string mGuid;
 
         internal GameplayTag(GameplayTagId id, int registryVersion, string path, string guid)
         {
-            _id = id;
-            _registryVersion = registryVersion;
-            _path = path ?? string.Empty;
-            _guid = guid ?? string.Empty;
+            mId = id;
+            mRegistryVersion = registryVersion;
+            mPath = path ?? string.Empty;
+            mGuid = guid ?? string.Empty;
         }
 
-        public GameplayTagId Id => _id;
+        public GameplayTagId Id => mId;
 
-        public string Path => _path;
+        public string Path => mPath;
 
-        public string Guid => _guid;
+        public string Guid => mGuid;
 
-        public bool IsValid => _id.IsValid && _registryVersion > 0;
+        public bool IsValid => mId.IsValid && mRegistryVersion > 0;
 
-        internal int RegistryVersion => _registryVersion;
+        internal int RegistryVersion => mRegistryVersion;
 
         public bool Equals(GameplayTag other)
         {
-            return _id == other._id && _registryVersion == other._registryVersion;
+            return mId == other.mId && mRegistryVersion == other.mRegistryVersion;
         }
 
         public override bool Equals(object obj) => obj is GameplayTag other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(_id, _registryVersion);
+        public override int GetHashCode() => HashCode.Combine(mId, mRegistryVersion);
 
         public static bool operator ==(GameplayTag left, GameplayTag right) => left.Equals(right);
 
         public static bool operator !=(GameplayTag left, GameplayTag right) => !left.Equals(right);
 
-        public override string ToString() => IsValid ? _path : "<无效 GameplayTag>";
+        public override string ToString() => IsValid ? mPath : "<无效 GameplayTag>";
     }
 }
