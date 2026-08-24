@@ -35,8 +35,9 @@ namespace Fokiga.Runtime.Gameplay
             base.OnAwake();
             // 初始化组件引用或基础资源
             Debug.Log($"{GetType().Name} Awake");
-            AddComponent<CameraComponent>();
             AddComponent<PlayerInputComponent>();
+            AddComponent<CameraComponent>();
+            AddComponent<CharacterMovementComponent>();
         }
 
         /// <summary>

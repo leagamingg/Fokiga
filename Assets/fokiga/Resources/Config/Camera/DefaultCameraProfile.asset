@@ -18,6 +18,10 @@ MonoBehaviour:
   mRotationSpeed: 2
   mMinVerticalAngle: -30
   mMaxVerticalAngle: 60
+  mMouseSensitivity: 0.12
+  mZoomSpeed: 1
+  mMinArmLength: 1.5
+  mMaxArmLength: 8
   mSphereRadius: 0.3
   mObstacleLayers:
     serializedVersion: 2

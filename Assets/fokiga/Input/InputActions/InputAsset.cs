@@ -130,6 +130,24 @@ namespace Fokiga.Runtime.Gameplay
                         ""initialStateCheck"": false
                     },
                     {
+                        ""name"": ""Look"",
+                        ""type"": ""Value"",
+                        ""id"": ""80ff7def-6243-4390-a001-6d5bc38b8508"",
+                        ""expectedControlType"": ""Vector2"",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": true
+                    },
+                    {
+                        ""name"": ""Zoom"",
+                        ""type"": ""Value"",
+                        ""id"": ""390e1eb2-982d-4ac3-984c-bd7d0dea9e03"",
+                        ""expectedControlType"": ""Axis"",
+                        ""processors"": """",
+                        ""interactions"": """",
+                        ""initialStateCheck"": true
+                    },
+                    {
                         ""name"": ""Jump"",
                         ""type"": ""Button"",
                         ""id"": ""414c3100-8bb5-4fe8-b82a-7a5cf3fbed9c"",
@@ -204,6 +222,28 @@ namespace Fokiga.Runtime.Gameplay
                     },
                     {
                         ""name"": """",
+                        ""id"": ""921b27a2-c9cc-4a8e-b27d-d29e5cd168fa"",
+                        ""path"": ""<Mouse>/delta"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""Look"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
+                        ""id"": ""a2b912ee-4237-499f-b33e-6e4e2f3286d4"",
+                        ""path"": ""<Mouse>/scroll/y"",
+                        ""interactions"": """",
+                        ""processors"": """",
+                        ""groups"": """",
+                        ""action"": ""Zoom"",
+                        ""isComposite"": false,
+                        ""isPartOfComposite"": false
+                    },
+                    {
+                        ""name"": """",
                         ""id"": ""c2af4507-5915-4c3f-8789-831a8e619cfb"",
                         ""path"": ""<Keyboard>/space"",
                         ""interactions"": """",
@@ -246,6 +286,8 @@ namespace Fokiga.Runtime.Gameplay
             m_CharacterControllerMap_MoveBack = m_CharacterControllerMap.FindAction("MoveBack", throwIfNotFound: true);
             m_CharacterControllerMap_MoveLeft = m_CharacterControllerMap.FindAction("MoveLeft", throwIfNotFound: true);
             m_CharacterControllerMap_MoveRight = m_CharacterControllerMap.FindAction("MoveRight", throwIfNotFound: true);
+            m_CharacterControllerMap_Look = m_CharacterControllerMap.FindAction("Look", throwIfNotFound: true);
+            m_CharacterControllerMap_Zoom = m_CharacterControllerMap.FindAction("Zoom", throwIfNotFound: true);
             m_CharacterControllerMap_Jump = m_CharacterControllerMap.FindAction("Jump", throwIfNotFound: true);
             m_CharacterControllerMap_Run = m_CharacterControllerMap.FindAction("Run", throwIfNotFound: true);
             m_CharacterControllerMap_Slip = m_CharacterControllerMap.FindAction("Slip", throwIfNotFound: true);
@@ -333,6 +375,8 @@ namespace Fokiga.Runtime.Gameplay
         private readonly InputAction m_CharacterControllerMap_MoveBack;
         private readonly InputAction m_CharacterControllerMap_MoveLeft;
         private readonly InputAction m_CharacterControllerMap_MoveRight;
+        private readonly InputAction m_CharacterControllerMap_Look;
+        private readonly InputAction m_CharacterControllerMap_Zoom;
         private readonly InputAction m_CharacterControllerMap_Jump;
         private readonly InputAction m_CharacterControllerMap_Run;
         private readonly InputAction m_CharacterControllerMap_Slip;
@@ -363,6 +407,14 @@ namespace Fokiga.Runtime.Gameplay
             /// Provides access to the underlying input action "CharacterControllerMap/MoveRight".
             /// </summary>
             public InputAction @MoveRight => m_Wrapper.m_CharacterControllerMap_MoveRight;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/Look".
+            /// </summary>
+            public InputAction @Look => m_Wrapper.m_CharacterControllerMap_Look;
+            /// <summary>
+            /// Provides access to the underlying input action "CharacterControllerMap/Zoom".
+            /// </summary>
+            public InputAction @Zoom => m_Wrapper.m_CharacterControllerMap_Zoom;
             /// <summary>
             /// Provides access to the underlying input action "CharacterControllerMap/Jump".
             /// </summary>
@@ -413,6 +465,12 @@ namespace Fokiga.Runtime.Gameplay
                 @MoveRight.started += instance.OnMoveRight;
                 @MoveRight.performed += instance.OnMoveRight;
                 @MoveRight.canceled += instance.OnMoveRight;
+                @Look.started += instance.OnLook;
+                @Look.performed += instance.OnLook;
+                @Look.canceled += instance.OnLook;
+                @Zoom.started += instance.OnZoom;
+                @Zoom.performed += instance.OnZoom;
+                @Zoom.canceled += instance.OnZoom;
                 @Jump.started += instance.OnJump;
                 @Jump.performed += instance.OnJump;
                 @Jump.canceled += instance.OnJump;
@@ -445,6 +503,12 @@ namespace Fokiga.Runtime.Gameplay
                 @MoveRight.started -= instance.OnMoveRight;
                 @MoveRight.performed -= instance.OnMoveRight;
                 @MoveRight.canceled -= instance.OnMoveRight;
+                @Look.started -= instance.OnLook;
+                @Look.performed -= instance.OnLook;
+                @Look.canceled -= instance.OnLook;
+                @Zoom.started -= instance.OnZoom;
+                @Zoom.performed -= instance.OnZoom;
+                @Zoom.canceled -= instance.OnZoom;
                 @Jump.started -= instance.OnJump;
                 @Jump.performed -= instance.OnJump;
                 @Jump.canceled -= instance.OnJump;
@@ -522,6 +586,20 @@ namespace Fokiga.Runtime.Gameplay
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnMoveRight(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Look" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLook(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Zoom" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnZoom(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

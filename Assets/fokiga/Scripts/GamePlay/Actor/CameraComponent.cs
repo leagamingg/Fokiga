@@ -10,11 +10,38 @@ namespace Fokiga.Runtime.Gameplay
         private Transform mCameraPivot; // 相机旋转支点
         private CameraProfile mProfile;
         private bool mOwnsRuntimeProfile;
+        private readonly RaycastHit[] mCameraCollisionHits = new RaycastHit[16];
 
         private float mCurrentYaw;    // 水平旋转角度（围绕角色Y轴）
         private float mCurrentPitch;  // 垂直旋转角度（上下视角）
+        private float mCurrentArmLength;
 
         public CameraProfile Profile => mProfile;
+
+        /// <summary>
+        /// 将输入方向转换为相机相对的水平移动方向。
+        /// </summary>
+        public Vector3 GetPlanarMovementDirection(Vector2 inputDirection)
+        {
+            var fallbackDirection = new Vector3(inputDirection.x, 0f, inputDirection.y);
+            if (mCameraPivot == null)
+            {
+                return fallbackDirection;
+            }
+
+            var forward = mCameraPivot.forward;
+            forward.y = 0f;
+            if (forward.sqrMagnitude <= Mathf.Epsilon)
+            {
+                return fallbackDirection;
+            }
+
+            forward.Normalize();
+            var right = mCameraPivot.right;
+            right.y = 0f;
+            right.Normalize();
+            return right * inputDirection.x + forward * inputDirection.y;
+        }
 
         /// <summary>
         /// 预制体加载后初始化相机
@@ -31,10 +58,11 @@ namespace Fokiga.Runtime.Gameplay
 
             ResolveProfile();
             mTargetTransform = Owner.RealObject.transform;
+            InitializeRotationFromOffset();
             CreateThirdPersonCamera();
 
             // 初始化旋转角度（基于初始偏移计算，确保初始看向角色）
-            InitializeRotationFromOffset();
+            mCameraPivot.rotation = Quaternion.Euler(mCurrentPitch, mCurrentYaw, 0f);
         }
 
         /// <summary>
@@ -43,22 +71,37 @@ namespace Fokiga.Runtime.Gameplay
         private void InitializeRotationFromOffset()
         {
             // 计算从相机到角色支点的方向（用于初始朝向）
-            Vector3 offset = mProfile.Offset;
-            if (offset.sqrMagnitude <= Mathf.Epsilon)
+            Vector3 offsetFromTarget = mProfile.Offset;
+            if (offsetFromTarget.sqrMagnitude <= Mathf.Epsilon)
             {
-                offset = new Vector3(0f, 2f, -4f);
+                offsetFromTarget = new Vector3(0f, 2f, -4f);
             }
 
-            Vector3 directionToTarget = -offset.normalized; // 偏移是相机相对于角色的位置，取反就是看向角色的方向
+            Vector3 offsetFromPivot = offsetFromTarget - Vector3.up * mProfile.LookAtHeight;
+            if (offsetFromPivot.sqrMagnitude <= Mathf.Epsilon)
+            {
+                offsetFromPivot = Vector3.back;
+            }
+
+            Vector3 directionToTarget = -offsetFromPivot.normalized;
             Quaternion initialRotation = Quaternion.LookRotation(directionToTarget);
 
-            // 提取欧拉角（确保角度在0-360范围内）
+            // 将欧拉角转换到[-180, 180]，避免俯仰角在跨越0度时被错误限制。
             Vector3 euler = initialRotation.eulerAngles;
-            mCurrentYaw = euler.y; // 水平旋转角度（绕Y轴）
-            mCurrentPitch = euler.x; // 垂直旋转角度（绕X轴）
+            mCurrentYaw = NormalizeAngle(euler.y); // 水平旋转角度（绕Y轴）
+            mCurrentPitch = NormalizeAngle(euler.x); // 垂直旋转角度（绕X轴）
 
             // 限制初始俯仰角在设定范围内（避免初始角度异常）
             mCurrentPitch = Mathf.Clamp(mCurrentPitch, mProfile.MinVerticalAngle, mProfile.MaxVerticalAngle);
+            mCurrentArmLength = Mathf.Clamp(
+                offsetFromPivot.magnitude,
+                mProfile.MinArmLength,
+                mProfile.MaxArmLength);
+        }
+
+        private static float NormalizeAngle(float angle)
+        {
+            return angle > 180f ? angle - 360f : angle;
         }
 
         /// <summary>
@@ -68,8 +111,8 @@ namespace Fokiga.Runtime.Gameplay
         {
             // 创建相机旋转支点（位于角色看向的高度，作为旋转中心）
             var pivotObj = new GameObject($"{Owner.RealObject.name}mCameraPivot");
-            pivotObj.transform.SetParent(mTargetTransform, false);
-            pivotObj.transform.localPosition = new Vector3(0f, mProfile.LookAtHeight, 0f); // 支点在角色看向高度
+            pivotObj.transform.SetParent(null);
+            pivotObj.transform.position = mTargetTransform.position + Vector3.up * mProfile.LookAtHeight;
             mCameraPivot = pivotObj.transform;
 
             // 创建相机对象
@@ -101,19 +144,15 @@ namespace Fokiga.Runtime.Gameplay
                 return;
             }
 
-            mCameraPivot.localPosition = new Vector3(0f, mProfile.LookAtHeight, 0f);
+            mCameraPivot.position = mTargetTransform.position + Vector3.up * mProfile.LookAtHeight;
             mThirdPersonCamera.clearFlags = mProfile.ClearFlags;
             mThirdPersonCamera.fieldOfView = mProfile.FieldOfView;
             mThirdPersonCamera.nearClipPlane = mProfile.NearClipPlane;
             mThirdPersonCamera.farClipPlane = mProfile.FarClipPlane;
             mThirdPersonCamera.depth = mProfile.Depth;
 
-            Vector3 offset = mProfile.Offset;
-            mThirdPersonCamera.transform.localPosition = new Vector3(
-                offset.x,
-                offset.y - mProfile.LookAtHeight,
-                offset.z);
-            mThirdPersonCamera.transform.LookAt(mCameraPivot.position);
+            mThirdPersonCamera.transform.localPosition = Vector3.back * mCurrentArmLength;
+            mThirdPersonCamera.transform.localRotation = Quaternion.identity;
         }
 
         private void ReleaseRuntimeProfile()
@@ -149,8 +188,8 @@ namespace Fokiga.Runtime.Gameplay
                 return;
             }
 
-            ApplyCameraProfile();
             InitializeRotationFromOffset();
+            ApplyCameraProfile();
             mCameraPivot.rotation = Quaternion.Euler(mCurrentPitch, mCurrentYaw, 0f);
         }
 
@@ -159,13 +198,16 @@ namespace Fokiga.Runtime.Gameplay
         /// </summary>
         private void HandleCameraRotation(Vector2 rotateInput)
         {
-            if (rotateInput.sqrMagnitude < 0.01f) return;
+            if (mProfile == null || mCameraPivot == null || rotateInput.sqrMagnitude <= Mathf.Epsilon)
+            {
+                return;
+            }
 
             // 水平旋转（围绕角色Y轴）
-            mCurrentYaw += rotateInput.x * mProfile.RotationSpeed;
+            mCurrentYaw += rotateInput.x * mProfile.MouseSensitivity;
 
             // 垂直旋转（限制角度范围）
-            mCurrentPitch -= rotateInput.y * mProfile.RotationSpeed;
+            mCurrentPitch -= rotateInput.y * mProfile.MouseSensitivity;
             mCurrentPitch = Mathf.Clamp(
                 mCurrentPitch,
                 mProfile.MinVerticalAngle,
@@ -175,63 +217,87 @@ namespace Fokiga.Runtime.Gameplay
             mCameraPivot.rotation = Quaternion.Euler(mCurrentPitch, mCurrentYaw, 0);
         }
 
+        private void HandleCameraZoom(float scrollInput)
+        {
+            if (mProfile == null || Mathf.Abs(scrollInput) <= Mathf.Epsilon)
+            {
+                return;
+            }
+
+            mCurrentArmLength = Mathf.Clamp(
+                mCurrentArmLength - scrollInput * mProfile.ZoomSpeed * 0.01f,
+                mProfile.MinArmLength,
+                mProfile.MaxArmLength);
+        }
+
         /// <summary>
         /// 更新相机位置（包含碰撞检测）
         /// </summary>
         private void UpdateCameraPosition()
         {
-            if (mTargetTransform == null || mThirdPersonCamera == null || mCameraPivot == null) return;
+            if (mProfile == null || mTargetTransform == null || mThirdPersonCamera == null || mCameraPivot == null)
+            {
+                return;
+            }
 
-            // 支点跟随角色移动（平滑过渡）
             Vector3 targetPivotPosition = mTargetTransform.position + Vector3.up * mProfile.LookAtHeight;
-            mCameraPivot.position = Vector3.Lerp(
-            mCameraPivot.position,
-            targetPivotPosition,
-            Time.deltaTime * mProfile.FollowSpeed
-            );
+            mCameraPivot.position = targetPivotPosition;
 
             // 计算相机理想位置（基于支点和初始偏移距离）
-            float targetDistance = mProfile.Offset.magnitude; // 保持初始设定的距离
+            float targetDistance = mCurrentArmLength;
             Vector3 desiredDirection = mCameraPivot.TransformDirection(Vector3.back); // 支点后方（基于当前旋转）
 
-            // 碰撞检测：避免相机穿模
-            if (Physics.SphereCast(
-            mCameraPivot.position,
-            mProfile.SphereRadius,
-            desiredDirection,
-            out RaycastHit hit,
-            targetDistance,
-            mProfile.ObstacleLayers))
+            // 碰撞检测：避免相机穿模，同时忽略角色自身的碰撞体。
+            var hitCount = Physics.SphereCastNonAlloc(
+                mCameraPivot.position,
+                mProfile.SphereRadius,
+                desiredDirection,
+                mCameraCollisionHits,
+                targetDistance,
+                mProfile.ObstacleLayers,
+                QueryTriggerInteraction.Ignore);
+            var hasObstacle = false;
+            var closestHitDistance = targetDistance;
+            for (var index = 0; index < hitCount; index++)
             {
-                // 遇到障碍物时拉近相机（但不小于最小距离）
+                var hit = mCameraCollisionHits[index];
+                if (hit.collider == null || IsTargetCollider(hit.collider))
+                {
+                    continue;
+                }
+
+                if (hit.distance < closestHitDistance)
+                {
+                    closestHitDistance = hit.distance;
+                    hasObstacle = true;
+                }
+            }
+
+            if (hasObstacle)
+            {
                 targetDistance = Mathf.Max(
-                    hit.distance - mProfile.SphereRadius,
+                    closestHitDistance - mProfile.SphereRadius,
                     mProfile.MinDistance);
             }
 
-            // 计算最终位置并平滑过渡
-            Vector3 finalPosition = mCameraPivot.position + desiredDirection * targetDistance;
-            mThirdPersonCamera.transform.position = Vector3.Lerp(
-            mThirdPersonCamera.transform.position,
-            finalPosition,
-            Time.deltaTime * mProfile.FollowSpeed * 2 // 相机位置调整更快，提升响应感
-            );
-
-            // 始终看向角色支点
-            mThirdPersonCamera.transform.LookAt(mCameraPivot.position);
+            mThirdPersonCamera.transform.localPosition = Vector3.back * targetDistance;
+            mThirdPersonCamera.transform.localRotation = Quaternion.identity;
         }
 
-        // 监听相机旋转事件（需要输入系统发送该事件）
-        public override void OnAwake()
+        private bool IsTargetCollider(Collider collider)
         {
-            base.OnAwake();
-            AddListener<InputEvents.MoveInputChangedEvent>(OnMovePerformed);
+            return mTargetTransform != null &&
+                (collider.transform == mTargetTransform || collider.transform.IsChildOf(mTargetTransform));
         }
-
 
         public override void OnDestroy()
         {
             base.OnDestroy();
+            if (Application.isPlaying)
+            {
+                SetCursorLocked(false);
+            }
+
             if (mThirdPersonCamera != null)
             {
                 Object.Destroy(mThirdPersonCamera.gameObject);
@@ -244,32 +310,67 @@ namespace Fokiga.Runtime.Gameplay
             }
             mTargetTransform = null;
             ReleaseRuntimeProfile();
-            RemoveListener<InputEvents.MoveInputChangedEvent>(OnMovePerformed);
-        }
-
-        private void OnMovePerformed(InputEvents.MoveInputChangedEvent evt)
-        {
-            Debug.Log($"Movement direction: {evt.MoveDirection}");
         }
 
         public override void OnUpdate(float deltaTime)
         {
             base.OnUpdate(deltaTime);
+            var inputComponent = Owner?.GetComponent<PlayerInputComponent>();
+            if (inputComponent != null)
+            {
+                HandleCameraRotation(inputComponent.LookDelta);
+                HandleCameraZoom(inputComponent.ZoomDelta);
+            }
+
+        }
+
+        public override void OnLateUpdate(float deltaTime)
+        {
+            base.OnLateUpdate(deltaTime);
             UpdateCameraPosition();
+        }
+
+        public override void OnStart()
+        {
+            base.OnStart();
+            if (Application.isPlaying)
+            {
+                SetCursorLocked(true);
+            }
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
             if (mThirdPersonCamera != null)
+            {
                 mThirdPersonCamera.enabled = true;
+            }
+
+            if (Application.isPlaying)
+            {
+                SetCursorLocked(true);
+            }
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
             if (mThirdPersonCamera != null)
+            {
                 mThirdPersonCamera.enabled = false;
+            }
+
+            if (Application.isPlaying)
+            {
+                SetCursorLocked(false);
+            }
+        }
+
+        private static void SetCursorLocked(bool locked)
+        {
+            Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !locked;
         }
 
         public override void OnRemovedFromActor()

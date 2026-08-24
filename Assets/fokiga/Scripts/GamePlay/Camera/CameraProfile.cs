@@ -25,6 +25,16 @@ namespace Fokiga.Runtime.Gameplay
         [SerializeField]
         private float mMaxVerticalAngle = 60f;
 
+        [Header("鼠标控制")]
+        [SerializeField, Min(0f)]
+        private float mMouseSensitivity = 0.12f;
+        [SerializeField, Min(0f)]
+        private float mZoomSpeed = 1f;
+        [SerializeField, Min(0.1f)]
+        private float mMinArmLength = 1.5f;
+        [SerializeField, Min(0.1f)]
+        private float mMaxArmLength = 8f;
+
         [Header("碰撞")]
         [SerializeField, Min(0f)]
         private float mSphereRadius = 0.3f;
@@ -57,6 +67,14 @@ namespace Fokiga.Runtime.Gameplay
 
         public float MaxVerticalAngle => mMaxVerticalAngle;
 
+        public float MouseSensitivity => mMouseSensitivity;
+
+        public float ZoomSpeed => mZoomSpeed;
+
+        public float MinArmLength => mMinArmLength;
+
+        public float MaxArmLength => mMaxArmLength;
+
         public float SphereRadius => mSphereRadius;
 
         public LayerMask ObstacleLayers => mObstacleLayers;
@@ -84,6 +102,10 @@ namespace Fokiga.Runtime.Gameplay
         {
             mFollowSpeed = Mathf.Max(0f, mFollowSpeed);
             mRotationSpeed = Mathf.Max(0f, mRotationSpeed);
+            mMouseSensitivity = Mathf.Max(0f, mMouseSensitivity);
+            mZoomSpeed = Mathf.Max(0f, mZoomSpeed);
+            mMinArmLength = Mathf.Max(0.1f, mMinArmLength);
+            mMaxArmLength = Mathf.Max(mMinArmLength, mMaxArmLength);
             mSphereRadius = Mathf.Max(0f, mSphereRadius);
             mMinDistance = Mathf.Max(0f, mMinDistance);
             mNearClipPlane = Mathf.Max(0.001f, mNearClipPlane);

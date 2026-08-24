@@ -38,6 +38,7 @@ namespace Fokiga.Runtime.Core
 
         // 存储所有Actor，以唯一标识ID为键
         private readonly Dictionary<string, ActorBase> mManagedActors = new Dictionary<string, ActorBase>();
+        private bool mHasStarted;
 
         /// <summary>
         /// 确保单例唯一性
@@ -75,6 +76,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         protected virtual void Start()
         {
+            mHasStarted = true;
             // 触发所有已存在Actor的OnStart
             InvokeActorStart();
         }
@@ -153,6 +155,12 @@ namespace Fokiga.Runtime.Core
                 actor.OnAwake();
             }
 
+            // Actor可能在Manager.Start之后才创建，需要立即补齐Start生命周期
+            if (mHasStarted)
+            {
+                actor.OnStart();
+            }
+
             Debug.Log($"通过预制体创建Actor成功：ID={id}, 类型={typeof(TActor).Name}");
             return actor;
         }
@@ -191,6 +199,12 @@ namespace Fokiga.Runtime.Core
             if (Instance != null)
             {
                 actor.OnAwake();
+            }
+
+            // Actor可能在Manager.Start之后才创建，需要立即补齐Start生命周期
+            if (mHasStarted)
+            {
+                actor.OnStart();
             }
 
             Debug.Log($"通过现有对象创建Actor成功：ID={id}, 类型={typeof(TActor).Name}");
@@ -277,6 +291,7 @@ namespace Fokiga.Runtime.Core
         /// </summary>
         protected virtual void OnDestroy()
         {
+            mHasStarted = false;
             // 只有单例实例销毁时才执行清理
             if (Instance == this)
             {

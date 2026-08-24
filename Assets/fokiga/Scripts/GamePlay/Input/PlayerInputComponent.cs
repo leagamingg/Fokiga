@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Fokiga.Runtime.Core;
@@ -14,14 +13,27 @@ namespace Fokiga.Runtime.Gameplay
 
         // 移动输入缓存
         private Vector2 mMoveDirection;
+        private Vector2 mLookDelta;
+        private float mZoomDelta;
+        private InputAction mLookAction;
+        private InputAction mZoomAction;
         // 动作状态缓存
         private bool mIsJumping;
         private bool mIsRunning;
         private bool mIsSlipping;
 
+        public Vector2 MoveDirection => mMoveDirection;
+
+        public Vector2 LookDelta => mLookDelta;
+
+        public float ZoomDelta => mZoomDelta;
+
+        public bool IsRunning => mIsRunning;
+
         public override void OnAwake()
         {
             base.OnAwake();
+            UpdatePriority = 100;
             InitializeInput();
         }
 
@@ -29,22 +41,49 @@ namespace Fokiga.Runtime.Gameplay
         {
             base.OnStart();
             // 启用输入映射
-            mControllerMap.Enable();
+            if (mInputAsset != null)
+            {
+                mControllerMap.Enable();
+            }
         }
 
         public override void OnUpdate(float deltaTime)
         {
             base.OnUpdate(deltaTime);
             // 在这里可以处理需要每帧更新的输入逻辑
-            ClampMoveDirection();
+            if (mInputAsset == null || !mControllerMap.enabled)
+            {
+                mLookDelta = Vector2.zero;
+                mZoomDelta = 0f;
+                return;
+            }
+
+            UpdateMoveDirection();
+            mLookDelta = mLookAction != null
+                ? mLookAction.ReadValue<Vector2>()
+                : Vector2.zero;
+            mZoomDelta = mZoomAction != null
+                ? mZoomAction.ReadValue<float>()
+                : 0f;
         }
 
         public override void OnDestroy()
         {
             base.OnDestroy();
             UnsubscribeInputEvents();
-            mControllerMap.Disable();
+            if (mInputAsset != null)
+            {
+                mControllerMap.Disable();
+                mInputAsset.Dispose();
+            }
+
             mInputAsset = null;
+            mMoveDirection = Vector2.zero;
+            mLookDelta = Vector2.zero;
+            mZoomDelta = 0f;
+            mLookAction = null;
+            mZoomAction = null;
+            mIsRunning = false;
         }
 
         private void InitializeInput()
@@ -56,21 +95,17 @@ namespace Fokiga.Runtime.Gameplay
                 return;
             }
             mControllerMap = mInputAsset.CharacterControllerMap;
+            mLookAction = mControllerMap.Look;
+            mZoomAction = mControllerMap.Zoom;
+            if (mLookAction == null || mZoomAction == null)
+            {
+                Debug.LogError("PlayerInputComponent: Look 或 Zoom 输入动作未在 InputAsset 中找到。");
+            }
             SubscribeInputEvents();
         }
 
         private void SubscribeInputEvents()
         {
-            // 移动输入事件
-            mControllerMap.MoveForward.performed += OnMoveForwardPerformed;
-            mControllerMap.MoveForward.canceled += OnMoveForwardCanceled;
-            mControllerMap.MoveBack.performed += OnMoveBackPerformed;
-            mControllerMap.MoveBack.canceled += OnMoveBackCanceled;
-            mControllerMap.MoveLeft.performed += OnMoveLeftPerformed;
-            mControllerMap.MoveLeft.canceled += OnMoveLeftCanceled;
-            mControllerMap.MoveRight.performed += OnMoveRightPerformed;
-            mControllerMap.MoveRight.canceled += OnMoveRightCanceled;
-
             // 跳跃输入事件
             mControllerMap.Jump.performed += OnJumpPerformedHandler;
             mControllerMap.Jump.canceled += OnJumpCanceledHandler;
@@ -86,15 +121,10 @@ namespace Fokiga.Runtime.Gameplay
 
         private void UnsubscribeInputEvents()
         {
-            // 移动输入事件
-            mControllerMap.MoveForward.performed -= OnMoveForwardPerformed;
-            mControllerMap.MoveForward.canceled -= OnMoveForwardCanceled;
-            mControllerMap.MoveBack.performed -= OnMoveBackPerformed;
-            mControllerMap.MoveBack.canceled -= OnMoveBackCanceled;
-            mControllerMap.MoveLeft.performed -= OnMoveLeftPerformed;
-            mControllerMap.MoveLeft.canceled -= OnMoveLeftCanceled;
-            mControllerMap.MoveRight.performed -= OnMoveRightPerformed;
-            mControllerMap.MoveRight.canceled -= OnMoveRightCanceled;
+            if (mInputAsset == null)
+            {
+                return;
+            }
 
             // 跳跃输入事件
             mControllerMap.Jump.performed -= OnJumpPerformedHandler;
@@ -110,56 +140,32 @@ namespace Fokiga.Runtime.Gameplay
         }
 
         #region 移动输入处理
-        private void OnMoveForwardPerformed(InputAction.CallbackContext context)
+        private void UpdateMoveDirection()
         {
-            mMoveDirection.y = context.ReadValue<float>();
-            Debug.Log("Input Player MoveForward");
-            Owner.EventManager.Broadcast(new InputEvents.MoveInputChangedEvent { MoveDirection = mMoveDirection });
-        }
-
-        private void OnMoveForwardCanceled(InputAction.CallbackContext context)
-        {
-            mMoveDirection.y = 0;
-        }
-
-        private void OnMoveBackPerformed(InputAction.CallbackContext context)
-        {
-            mMoveDirection.y = -context.ReadValue<float>(); // 向后为负值
-            Debug.Log("Input Player MoveBack");
-        }
-
-        private void OnMoveBackCanceled(InputAction.CallbackContext context)
-        {
-            mMoveDirection.y = 0;
-        }
-
-        private void OnMoveLeftPerformed(InputAction.CallbackContext context)
-        {
-            mMoveDirection.x = -context.ReadValue<float>(); // 向左为负值
-        }
-
-        private void OnMoveLeftCanceled(InputAction.CallbackContext context)
-        {
-            mMoveDirection.x = 0;
-        }
-
-        private void OnMoveRightPerformed(InputAction.CallbackContext context)
-        {
-            mMoveDirection.x = context.ReadValue<float>();
-        }
-
-        private void OnMoveRightCanceled(InputAction.CallbackContext context)
-        {
-            mMoveDirection.x = 0;
-        }
-
-        // 限制移动方向的大小（防止斜向移动速度过快）
-        private void ClampMoveDirection()
-        {
-            if (mMoveDirection.magnitude > 1f)
+            if (mInputAsset == null || !mControllerMap.enabled)
             {
-                mMoveDirection.Normalize();
+                return;
             }
+
+            var nextDirection = new Vector2(
+                mControllerMap.MoveRight.ReadValue<float>() - mControllerMap.MoveLeft.ReadValue<float>(),
+                mControllerMap.MoveForward.ReadValue<float>() - mControllerMap.MoveBack.ReadValue<float>());
+
+            if (nextDirection.sqrMagnitude > 1f)
+            {
+                nextDirection.Normalize();
+            }
+
+            if (nextDirection == mMoveDirection)
+            {
+                return;
+            }
+
+            mMoveDirection = nextDirection;
+            Owner?.EventManager.Broadcast(new InputEvents.MoveInputChangedEvent
+            {
+                MoveDirection = mMoveDirection
+            });
         }
         #endregion
 
@@ -198,7 +204,7 @@ namespace Fokiga.Runtime.Gameplay
         public override void OnEnable()
         {
             base.OnEnable();
-            if (mControllerMap.enabled)
+            if (mInputAsset != null && !mControllerMap.enabled)
             {
                 mControllerMap.Enable();
             }
@@ -207,10 +213,22 @@ namespace Fokiga.Runtime.Gameplay
         public override void OnDisable()
         {
             base.OnDisable();
-            if (mControllerMap.enabled)
+            if (mInputAsset != null && mControllerMap.enabled)
             {
                 mControllerMap.Disable();
             }
+
+            if (mMoveDirection != Vector2.zero)
+            {
+                mMoveDirection = Vector2.zero;
+                Owner?.EventManager.Broadcast(new InputEvents.MoveInputChangedEvent
+                {
+                    MoveDirection = Vector2.zero
+                });
+            }
+
+            mLookDelta = Vector2.zero;
+            mZoomDelta = 0f;
         }
     }
 }
